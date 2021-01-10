@@ -1,0 +1,44 @@
+package controllers
+
+import (
+	"easy_wallpaper_api/models"
+	"easy_wallpaper_api/util"
+	"github.com/astaxie/beego"
+)
+
+type Base struct {
+	beego.Controller
+	CurrentLoginUser models.User
+}
+
+func (this *Base) Prepare() {
+	this.Auth()
+}
+
+// 权限验证
+func (Base *Base) Auth() {
+	// 自动读取当前登陆用户
+	isLogin := false
+	token := Base.Ctx.Request.Header.Get("Token")
+	if token == "" {
+		//token为空跳转到授权页
+		Base.Data["json"] = ReturnError(10002, "token为空，跳转到授权页")
+		Base.ServeJSON()
+	} else {
+		user_info, err := util.ValidateToken(token)
+		if err != nil {
+			//解析失败
+			Base.Data["json"] = ReturnError(10002, "token验证失败，跳转到授权页重新生成token")
+			Base.ServeJSON()
+		} else {
+			//根据解析的member查询出用户基本信息
+			user, err := models.FindUserByUsername(user_info.Member)
+			if err == nil {
+				Base.CurrentLoginUser = *user
+				isLogin = true
+			}
+		}
+	}
+	Base.Data["IsLogin"] = isLogin
+	Base.Data["user"] = Base.CurrentLoginUser
+}
