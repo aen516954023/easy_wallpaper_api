@@ -1,7 +1,7 @@
 package test
 
 import (
-	_ "electricity/routers"
+	_ "easy_wallpaper_api/routers"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
