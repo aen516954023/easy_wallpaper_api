@@ -1,1 +1,17 @@
 2021/01/09 19:59:21.194 [I] [asm_amd64.s:1374]  http server Running on http://:8055
+2021/01/24 07:47:05.042 [I] [asm_amd64.s:1373]  http server Running on http://:8066
+2021/01/24 07:47:29.410 [D] [server.go:2807]  |            ::1|[97;43m 404 [0m|    353.161µs| nomatch|[97;44m GET     [0m /  
+2021/01/24 07:47:29.647 [D] [server.go:2807]  |            ::1|[97;43m 404 [0m|    852.761µs| nomatch|[97;44m GET     [0m /favicon.ico
+2021/01/24 07:49:16.265 [I] [asm_amd64.s:1373]  http server Running on http://:8066
+2021/01/24 07:49:33.982 [D] [server.go:2807]  |            ::1|[90;47m 302 [0m|    125.825µs|   match|[97;44m GET     [0m /swagger
+2021/01/24 07:49:33.989 [D] [server.go:2807]  |            ::1|[97;42m 200 [0m|    156.607µs|   match|[97;44m GET     [0m /swagger/
+2021/01/24 07:49:34.046 [D] [server.go:2807]  |            ::1|[97;42m 200 [0m|    850.555µs|   match|[97;44m GET     [0m /swagger/swagger-ui.css
+2021/01/24 07:49:34.097 [D] [server.go:2807]  |            ::1|[97;42m 200 [0m|   2.102084ms|   match|[97;44m GET     [0m /swagger/swagger-ui-standalone-preset.js
+2021/01/24 07:49:34.109 [D] [server.go:2807]  |            ::1|[97;42m 200 [0m|  13.483839ms|   match|[97;44m GET     [0m /swagger/swagger-ui-bundle.js
+2021/01/24 07:49:34.290 [D] [server.go:2807]  |            ::1|[97;42m 200 [0m|    180.376µs|   match|[97;44m GET     [0m /swagger/swagger.json
+2021/01/24 07:49:34.325 [D] [server.go:2807]  |            ::1|[97;42m 200 [0m|    474.584µs|   match|[97;44m GET     [0m /swagger/favicon-32x32.png
+2021/01/24 07:58:52.887 [I] [asm_amd64.s:1373]  http server Running on http://:8066
+2021/01/24 08:01:09.035 [I] [asm_amd64.s:1373]  http server Running on http://:8066
+2021/01/24 08:01:48.967 [I] [asm_amd64.s:1373]  http server Running on http://:8066
+2021/01/24 08:02:48.572 [I] [asm_amd64.s:1373]  http server Running on http://:8066
+2021/01/26 23:21:00.535 [I] [asm_amd64.s:1373]  http server Running on http://:8066

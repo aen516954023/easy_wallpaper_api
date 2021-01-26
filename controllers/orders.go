@@ -60,130 +60,155 @@ func (this *Orders) Index() {
 func (this *Orders) SaveOrder() {
 
 	// 获取参数
-	goodsId, err := this.GetInt("goods_id")               // 商品id
-	nums, num_err := this.GetInt("nums")                  // 购买数量
-	totalPrice, price_err := this.GetFloat("total_price") // 订单总金额
+	Address := this.GetString("address")                       // 施工地址
+	constructionTime := this.GetString("construction_time")    // 施工时间
+	types, typesErr := this.GetInt("types")                    // 服务类型
+	materials, _ := this.GetInt("is_materials")                // 是否提供物料
+	area, areaErr := this.GetFloat("area")                     // 面积
+	oldWallpaper, _ := this.GetInt("is_tear_of_old_wallpaper") // 是否清除旧纸
+	basementMembrane, _ := this.GetInt("basement_membrane")    // 是否刷基膜
+	moreDescription := this.GetString("desc")                  // 需求描述
+	// 图片上传
+
+	// 模拟用户参数
+	userId := 1
+	//phone := "15938755991"
 
 	// 参数效验
-	if err != nil {
-		this.Data["json"] = ReturnError(40001, "参数不合法")
+	if Address == "" {
+		this.Data["json"] = ReturnError(40001, "地址不能为空")
 		this.ServeJSON()
 		this.StopRun()
 	}
 
-	if nums <= 0 || num_err != nil {
-		this.Data["json"] = ReturnError(40001, "购买数量不合法")
+	if constructionTime == "" {
+		this.Data["json"] = ReturnError(40001, "请选择施工时间")
 		this.ServeJSON()
 		this.StopRun()
 	}
 
-	if price_err != nil {
-		this.Data["json"] = ReturnError(40001, "金额参数不合法")
+	if typesErr != nil {
+		this.Data["json"] = ReturnError(40001, "服务类型参数错误")
 		this.ServeJSON()
 		this.StopRun()
 	}
-	// 通过商品id 查询相关数据，及库存 及相关产品信息
-	info, _ := models.GetGoodSKUDataOne(goodsId)
+	fmt.Println(types)
 
-	//============= 逻辑效验 ==================
-	//1. 产品是否下架
-	if info.Status != 1 {
-		this.Data["json"] = ReturnError(40001, "该产品已下架，请选择其它产品")
+	if areaErr != nil || area < 1 {
+		this.Data["json"] = ReturnError(40001, "请选择有效的施工面积")
 		this.ServeJSON()
 		this.StopRun()
 	}
-	// 2.库存判断 ,处理超卖 Todo
-	if info.Sales >= info.Stock {
-		this.Data["json"] = ReturnError(40007, "已售磬")
-		this.ServeJSON()
-		this.StopRun()
-	} else if nums > (info.Stock - info.Sales) {
-		this.Data["json"] = ReturnError(40006, "库存不足")
-		this.ServeJSON()
-		this.StopRun()
-	}
-	// 3. 判断params中的总金额 与 产品对应的金额 是否相符
-
-	// 4. ...
-
-	// 并发处理 Todo
-
-	//开启事务
+	fmt.Println(area)
+	var orderinfo models.EOrders
+	orderinfo.OrderSn = CreateRandOrderOn() // 生成订单号
+	orderinfo.Mid = userId
+	orderinfo.WorkerId = 0
+	orderinfo.Area = area
+	orderinfo.BasementMembrane = basementMembrane
+	orderinfo.IsTearOfOldWallpaper = oldWallpaper
+	orderinfo.IsMateriel = materials
+	orderinfo.MoreDescription = moreDescription
+	orderinfo.CreateAt = time.Now().Format("2006-01-02 15:04:05")
+	orderinfo.Status = 0
+	orderinfo.Address = Address
 	o := orm.NewOrm()
-	beginError := o.Begin()
-	if beginError != nil {
-		this.Data["json"] = ReturnError(40000, "事务异常")
+	id, errors := o.Insert(&orderinfo)
+	if errors == nil {
+		this.Data["json"] = ReturnSuccess(0, "success", id, 1)
 		this.ServeJSON()
 		return
 	}
-	var user models.User
-	user.Id = this.CurrentLoginUser.Id // 获取用户uid
-	var address models.Address
-	address.Id = 0 // Todo 通过uid及币种信息获取用户对应提币币种地址id
-	var orderInfo models.OrderInfo
-	orderInfo.OrderId = CreateRandOrderOn() // 生成订单号
-	orderInfo.TotalCount = nums
-	orderInfo.TotalPrice = totalPrice
-	orderInfo.TransitPrice = info.Fee * float64(info.GoodsCycle.Day)
-	orderInfo.CycleDay = info.GoodsCycle.Day
-	orderInfo.Unite = info.Unite
-	orderInfo.GoodsSkuName = info.Name
-	orderInfo.CreateAt = time.Now().Format("2006-01-02 15:04:05")
-	orderInfo.CreateTime = strToUnixTime(time.Now().Format("2006-01-02 15:04:05"))
-	orderInfo.ExpirationTime = strToUnixTime(time.Now().Format("2006-01-02 15:04:05")) + 60*60*24*int64(info.GoodsCycle.Day)
-	orderInfo.OrderStatus = 1
-	orderInfo.Address = &address
-	orderInfo.User = &user
-	id, errors := o.Insert(&orderInfo)
-	if errors != nil {
-		rErr := o.Rollback()
-		if rErr != nil {
-			logs.Error("事务回滚出错")
-		}
-		logs.Error(errors)
-		this.Data["json"] = ReturnError(40001, "订单提交错误")
-		this.ServeJSON()
-		return
-	}
-	orderInfo.Id = int(id)
-	var goodsSKU models.GoodsSKU
-	goodsSKU.Id = goodsId
-	var orderGoods models.OrderGoods
-	orderGoods.Count = nums
-	orderGoods.Price = totalPrice
-	orderGoods.OrderInfo = &orderInfo
-	orderGoods.GoodsSKU = &goodsSKU
-
-	_, errs := o.Insert(&orderGoods)
-	if errs != nil {
-		rErr := o.Rollback()
-		if rErr != nil {
-			logs.Error("事务回滚出错")
-		}
-		logs.Error(errs)
-		this.Data["json"] = ReturnError(40001, "订单提交错误2")
-		this.ServeJSON()
-		return
-	}
-	// 订单提交成功 更新库存+nums
-	goodsSKU.Sales = info.Sales + nums
-	_, uErr := o.Update(&goodsSKU, "sales")
-	if uErr != nil {
-		rErr := o.Rollback()
-		if rErr != nil {
-			logs.Error("事务回滚出错")
-		}
-		logs.Error(uErr)
-		this.Data["json"] = ReturnError(40001, "订单提交错误3")
-		this.ServeJSON()
-		return
-	}
-	ok := o.Commit()
-	if ok != nil {
-		logs.Error("事务提交出错")
-	}
-	this.Data["json"] = ReturnSuccess(0, "success", id, 1)
+	this.Data["json"] = ReturnError(40001, "订单提交失败")
 	this.ServeJSON()
+	/*
+		// 通过商品id 查询相关数据，及库存 及相关产品信息
+		info, _ := models.GetGoodSKUDataOne(goodsId)
+
+		//============= 逻辑效验 ==================
+
+		// 3. 判断params中的总金额 与 产品对应的金额 是否相符
+
+		// 4. ...
+
+		//开启事务
+		o := orm.NewOrm()
+		beginError := o.Begin()
+		if beginError != nil {
+			this.Data["json"] = ReturnError(40000, "事务异常")
+			this.ServeJSON()
+			return
+		}
+		var user models.User
+		user.Id = this.CurrentLoginUser.Id // 获取用户uid
+		var address models.Address
+		address.Id = 0 // Todo 通过uid及币种信息获取用户对应提币币种地址id
+		var orderInfo models.OrderInfo
+		orderInfo.OrderId = CreateRandOrderOn() // 生成订单号
+		orderInfo.TotalCount = nums
+		orderInfo.TotalPrice = totalPrice
+		orderInfo.TransitPrice = info.Fee * float64(info.GoodsCycle.Day)
+		orderInfo.CycleDay = info.GoodsCycle.Day
+		orderInfo.Unite = info.Unite
+		orderInfo.GoodsSkuName = info.Name
+		orderInfo.CreateAt = time.Now().Format("2006-01-02 15:04:05")
+		orderInfo.CreateTime = strToUnixTime(time.Now().Format("2006-01-02 15:04:05"))
+		orderInfo.ExpirationTime = strToUnixTime(time.Now().Format("2006-01-02 15:04:05")) + 60*60*24*int64(info.GoodsCycle.Day)
+		orderInfo.OrderStatus = 1
+		orderInfo.Address = &address
+		orderInfo.User = &user
+		id, errors := o.Insert(&orderInfo)
+		if errors != nil {
+			rErr := o.Rollback()
+			if rErr != nil {
+				logs.Error("事务回滚出错")
+			}
+			logs.Error(errors)
+			this.Data["json"] = ReturnError(40001, "订单提交错误")
+			this.ServeJSON()
+			return
+		}
+		orderInfo.Id = int(id)
+		var goodsSKU models.GoodsSKU
+		goodsSKU.Id = goodsId
+		var orderGoods models.OrderGoods
+		orderGoods.Count = nums
+		orderGoods.Price = totalPrice
+		orderGoods.OrderInfo = &orderInfo
+		orderGoods.GoodsSKU = &goodsSKU
+
+		_, errs := o.Insert(&orderGoods)
+		if errs != nil {
+			rErr := o.Rollback()
+			if rErr != nil {
+				logs.Error("事务回滚出错")
+			}
+			logs.Error(errs)
+			this.Data["json"] = ReturnError(40001, "订单提交错误2")
+			this.ServeJSON()
+			return
+		}
+		// 订单提交成功 更新库存+nums
+		goodsSKU.Sales = info.Sales + nums
+		_, uErr := o.Update(&goodsSKU, "sales")
+		if uErr != nil {
+			rErr := o.Rollback()
+			if rErr != nil {
+				logs.Error("事务回滚出错")
+			}
+			logs.Error(uErr)
+			this.Data["json"] = ReturnError(40001, "订单提交错误3")
+			this.ServeJSON()
+			return
+		}
+		ok := o.Commit()
+		if ok != nil {
+			logs.Error("事务提交出错")
+		}
+		this.Data["json"] = ReturnSuccess(0, "success", id, 1)
+		this.ServeJSON()
+
+	*/
 }
 
 // 取消订单

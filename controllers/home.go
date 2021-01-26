@@ -26,14 +26,9 @@ func (h *Home) Index() {
 		data["banner"] = nil
 		//fmt.Println(err)
 	}
-	// msg
-	num, msg, errs := models.GetMsgBefore(3)
-	if errs == nil && num > 0 {
-		data["msg"] = msg
-	} else {
-		data["msg"] = nil
-		//fmt.Println(errs)
-	}
+	// 分类
+	data["types"] = ""
+
 	// 推荐列表
 	numg, goods, errg := models.GetRecommendList(4)
 	if errg == nil && numg > 0 {
@@ -48,10 +43,6 @@ func (h *Home) Index() {
 			goodList[k]["title"] = goods[k].Goods.Name
 			goodList[k]["effect_time"] = goods[k].BeginTime
 			goodList[k]["price"] = goods[k].Price
-			goodList[k]["cycle"] = goods[k].GoodsCycle.Day
-			goodList[k]["power"] = goods[k].Goods.Power
-			goodList[k]["stock"] = goods[k].Stock
-			goodList[k]["sales"] = goods[k].Sales
 			progress, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(goods[k].Sales)/float64(goods[k].Stock)*100), 64)
 			goodList[k]["progress"] = progress
 
