@@ -19,30 +19,28 @@ type User struct {
 // HEADER PAYLOAD SIGNATURE
 // This struct is the PAYLOAD
 type MyCustomClaims struct {
-	User
 	jwt.StandardClaims
 }
 
 //刷新jwt token
 func RefreshToken(tokenString string) (string, error) {
-	// first get previous token
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		&MyCustomClaims{},
-		func(token *jwt.Token) (interface{}, error) {
-			return []byte(KEY), nil
-		})
-	claims, ok := token.Claims.(*MyCustomClaims)
-	if !ok || !token.Valid {
-		return "", err
-	}
+	//// first get previous token
+	//token, err := jwt.ParseWithClaims(
+	//	tokenString,
+	//	&MyCustomClaims{},
+	//	func(token *jwt.Token) (interface{}, error) {
+	//		return []byte(KEY), nil
+	//	})
+	//claims, ok := token.Claims.(*MyCustomClaims)
+	//if !ok || !token.Valid {
+	//	return "", err
+	//}
 	mySigningKey := []byte(KEY)
 	expireAt := time.Now().Add(time.Second * time.Duration(DEFAULT_EXPIRE_SECONDS)).Unix()
 	newClaims := MyCustomClaims{
-		claims.User,
 		jwt.StandardClaims{
 			ExpiresAt: expireAt,
-			Issuer:    claims.User.Member,
+			Issuer:    tokenString,
 			IssuedAt:  time.Now().Unix(),
 		},
 	}
@@ -63,28 +61,28 @@ func ValidateToken(tokenString string) (info User, err error) {
 			return
 		}
 	}()
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		&MyCustomClaims{},
-		func(token *jwt.Token) (interface{}, error) {
-			return []byte(KEY), nil
-		})
-	if err != nil {
-		panic("err")
-	}
+	//token, err := jwt.ParseWithClaims(
+	//	tokenString,
+	//	&MyCustomClaims{},
+	//	func(token *jwt.Token) (interface{}, error) {
+	//		return []byte(KEY), nil
+	//	})
+	//if err != nil {
+	//	panic("err")
+	//}
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		//fmt.Printf("%v %v", claims.User, claims.StandardClaims.ExpiresAt)
-		//fmt.Println("token will be expired at ", time.Unix(claims.StandardClaims.ExpiresAt, 0))
-		info = claims.User
-	} else {
-		fmt.Println("validate tokenString failed !!!", err)
-	}
+	//if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+	//	//fmt.Printf("%v %v", claims.User, claims.StandardClaims.ExpiresAt)
+	//	//fmt.Println("token will be expired at ", time.Unix(claims.StandardClaims.ExpiresAt, 0))
+	//	info = claims.User
+	//} else {
+	//	fmt.Println("validate tokenString failed !!!", err)
+	//}
 	return
 }
 
 //获取jwt token
-func GenerateToken(info *User, expiredSeconds int) (tokenString string, err error) {
+func GenerateToken(openid string, expiredSeconds int) (tokenString string, err error) {
 	if expiredSeconds == 0 {
 		expiredSeconds = DEFAULT_EXPIRE_SECONDS
 	}
@@ -93,12 +91,10 @@ func GenerateToken(info *User, expiredSeconds int) (tokenString string, err erro
 	expireAt := time.Now().Add(time.Second * time.Duration(expiredSeconds)).Unix()
 	fmt.Println("token will be expired at ", time.Unix(expireAt, 0))
 	// pass parameter to this func or not
-	user := *info
 	claims := MyCustomClaims{
-		user,
 		jwt.StandardClaims{
 			ExpiresAt: expireAt,
-			Issuer:    user.Member,
+			Issuer:    openid,
 			IssuedAt:  time.Now().Unix(),
 		},
 	}

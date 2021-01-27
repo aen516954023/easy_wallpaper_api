@@ -17,8 +17,6 @@ func (this *Base) Prepare() {
 
 // 权限验证
 func (Base *Base) Auth() {
-	// 自动读取当前登陆用户
-	isLogin := false
 	token := Base.Ctx.Request.Header.Get("Token")
 	if token == "" {
 		//token为空跳转到授权页
@@ -35,10 +33,8 @@ func (Base *Base) Auth() {
 			user, err := models.FindUserByUsername(user_info.Member)
 			if err == nil {
 				Base.CurrentLoginUser = *user
-				isLogin = true
 			}
 		}
 	}
-	Base.Data["IsLogin"] = isLogin
 	Base.Data["user"] = Base.CurrentLoginUser
 }

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"easy_wallpaper_api/models"
-	"easy_wallpaper_api/util"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
@@ -76,18 +75,18 @@ func (this *Auth) EmailCreate() {
 	if status {
 		if err == nil {
 			//生成token并返回
-			user := util.User{Member: email}
-			token, err := util.GenerateToken(&user, 0)
-			if err == nil {
-				msg := map[string]string{
-					"token": token,
-				}
-				this.Data["json"] = ReturnSuccess(1, "success", msg, 1)
-				this.ServeJSON()
-			} else {
-				this.Data["json"] = ReturnError(0, "生成Token失败")
-				this.ServeJSON()
-			}
+			//user := util.User{Member: email}
+			//token, err := util.GenerateToken(&user, 0)
+			//if err == nil {
+			//	msg := map[string]string{
+			//		"token": token,
+			//	}
+			//	this.Data["json"] = ReturnSuccess(1, "success", msg, 1)
+			//	this.ServeJSON()
+			//} else {
+			//	this.Data["json"] = ReturnError(0, "生成Token失败")
+			//	this.ServeJSON()
+			//}
 		} else {
 			//插入数据库失败
 			this.Data["json"] = ReturnError(0, "参数错误！")
@@ -170,17 +169,17 @@ func (this *Auth) EmailLogin() {
 	status := models.EmailLogin(Email, password)
 	if status {
 		//登录成功，生成token信息
-		//生成token并返回
-		user := util.User{Member: Email}
-		token, err := util.GenerateToken(&user, 0)
-		if err == nil {
-			msg := map[string]string{
-				"token": token,
-			}
-			this.Data["json"] = ReturnSuccess(1, "success", msg, 1)
-		} else {
-			this.Data["json"] = ReturnError(0, "生成Token失败")
-		}
+		////生成token并返回
+		//user := util.User{Member: Email}
+		//token, err := util.GenerateToken(&user, 0)
+		//if err == nil {
+		//	msg := map[string]string{
+		//		"token": token,
+		//	}
+		//	this.Data["json"] = ReturnSuccess(1, "success", msg, 1)
+		//} else {
+		//	this.Data["json"] = ReturnError(0, "生成Token失败")
+		//}
 		this.ServeJSON()
 		this.StopRun()
 	} else {

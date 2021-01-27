@@ -115,6 +115,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"],
+		beego.ControllerComments{
+			Method:           "Login",
+			Router:           "/login",
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"],
 		beego.ControllerComments{
 			Method:           "Earnlist",

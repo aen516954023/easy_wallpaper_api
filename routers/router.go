@@ -35,9 +35,9 @@ func init() {
 				&controllers.Orders{},
 			),
 		),
-		beego.NSNamespace("/user",
+		beego.NSNamespace("/token",
 			beego.NSInclude(
-				&controllers.User{},
+				&controllers.Token{},
 			),
 		),
 		beego.NSNamespace("/notify",
