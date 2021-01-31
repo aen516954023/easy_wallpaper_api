@@ -30,7 +30,7 @@ func (Base *Base) Auth() {
 			Base.ServeJSON()
 		} else {
 			//根据解析的member查询出用户基本信息
-			user, err := models.FindUserByUsername(user_info.Member)
+			user, err := models.FindUserByUsername(user_info.OpenId)
 			if err == nil {
 				Base.CurrentLoginUser = *user
 			}

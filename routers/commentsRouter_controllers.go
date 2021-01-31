@@ -119,7 +119,16 @@ func init() {
 		beego.ControllerComments{
 			Method:           "Login",
 			Router:           "/login",
-			AllowHTTPMethods: []string{"get"},
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"],
+		beego.ControllerComments{
+			Method:           "Verify",
+			Router:           "/verify",
+			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
