@@ -1,5 +1,5 @@
 // @APIVersion 1.0.0
-// @Title beego Test API
+// @Title 易贴壁纸 API
 // @Description beego has a very cool tools to autogenerate documents for your API
 // @Contact astaxie@gmail.com
 // @TermsOfServiceUrl http://beego.me/
@@ -15,11 +15,6 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
-		beego.NSNamespace("/auth",
-			beego.NSInclude(
-				&controllers.Auth{},
-			),
-		),
 		beego.NSNamespace("/home",
 			beego.NSInclude(
 				&controllers.Home{},
@@ -38,6 +33,11 @@ func init() {
 		beego.NSNamespace("/token",
 			beego.NSInclude(
 				&controllers.Token{},
+			),
+		),
+		beego.NSNamespace("/workers",
+			beego.NSInclude(
+				&controllers.Workers{},
 			),
 		),
 		beego.NSNamespace("/notify",

@@ -7,33 +7,6 @@ import (
 
 func init() {
 
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Auth"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Auth"],
-		beego.ControllerComments{
-			Method:           "EmailCreate",
-			Router:           "/EmailCreate",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Auth"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Auth"],
-		beego.ControllerComments{
-			Method:           "EmailLogin",
-			Router:           "/EmailLogin",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Auth"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Auth"],
-		beego.ControllerComments{
-			Method:           "SendEmailVer",
-			Router:           "/SendEmailVer",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:GoodsList"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:GoodsList"],
 		beego.ControllerComments{
 			Method:           "GetGoodsDetail",
@@ -100,7 +73,7 @@ func init() {
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Orders"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Orders"],
 		beego.ControllerComments{
 			Method:           "Index",
-			Router:           "/get_order_info",
+			Router:           "/get_orders_all",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
@@ -126,6 +99,15 @@ func init() {
 
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"],
 		beego.ControllerComments{
+			Method:           "GetPhone",
+			Router:           "/phone",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Token"],
+		beego.ControllerComments{
 			Method:           "Verify",
 			Router:           "/verify",
 			AllowHTTPMethods: []string{"post"},
@@ -133,28 +115,10 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"],
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Workers"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Workers"],
 		beego.ControllerComments{
-			Method:           "Earnlist",
-			Router:           "/my/earnlist",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"],
-		beego.ControllerComments{
-			Method:           "Index",
-			Router:           "/my/index",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:User"],
-		beego.ControllerComments{
-			Method:           "OrderList",
-			Router:           "/my/orders",
+			Method:           "OrderTaking",
+			Router:           "/order_taking",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,

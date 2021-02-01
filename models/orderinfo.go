@@ -12,7 +12,7 @@ func init() {
 type OrderInfo struct {
 	Id             int
 	OrderId        string        `orm:"size(20);unique"` // 订单号
-	User           *User         `orm:"rel(fk)"`
+	User           *EMembers     `orm:"rel(fk)"`
 	Address        *Address      `orm:"rel(fk)"` // 收货地址
 	PayMethod      int           // 支付方式
 	TotalCount     int           `orm:"default(1)"` // 商品数量

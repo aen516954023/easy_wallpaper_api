@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/httplib"
 	"time"
 )
@@ -23,6 +24,8 @@ type TokenData struct {
 	OpenId     string `json"open_id"`
 	SessionKey string `json:"session_key"`
 }
+
+var bm, _ = cache.NewCache("memory", `{"interval":60}`)
 
 // @Title 小程序登陆
 // @Description 小程序登陆接口

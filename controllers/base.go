@@ -8,7 +8,7 @@ import (
 
 type Base struct {
 	beego.Controller
-	CurrentLoginUser models.User
+	CurrentLoginUser models.EMembers
 }
 
 func (this *Base) Prepare() {
@@ -23,16 +23,16 @@ func (Base *Base) Auth() {
 		Base.Data["json"] = ReturnError(10002, "token为空，跳转到授权页")
 		Base.ServeJSON()
 	} else {
-		user_info, err := util.ValidateToken(token)
+		userInfo, err := util.ValidateToken(token)
 		if err != nil {
 			//解析失败
 			Base.Data["json"] = ReturnError(10002, "token验证失败，跳转到授权页重新生成token")
 			Base.ServeJSON()
 		} else {
 			//根据解析的member查询出用户基本信息
-			user, err := models.FindUserByUsername(user_info.OpenId)
+			members, err := models.GetMemberInfo(userInfo.OpenId)
 			if err == nil {
-				Base.CurrentLoginUser = *user
+				Base.CurrentLoginUser = members
 			}
 		}
 	}

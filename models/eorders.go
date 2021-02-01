@@ -4,8 +4,7 @@ import "github.com/astaxie/beego/orm"
 
 type EOrders struct {
 	Id                   int
-	OrderSn              string
-	Mid                  int
+	MId                  int
 	WorkerId             int
 	Address              string
 	ConstructionTime     int
@@ -22,4 +21,12 @@ type EOrders struct {
 
 func init() {
 	orm.RegisterModel(new(EOrders))
+}
+
+//查看所有订单列表
+func GetOrdersAll() (int64, []EOrders, error) {
+	o := orm.NewOrm()
+	var data []EOrders
+	num, err := o.QueryTable("e_orders").All(&data)
+	return num, data, err
 }

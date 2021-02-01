@@ -11,7 +11,7 @@ func init() {
 // 订单表
 // 订单商品表
 type OrderGoods struct {
-	Id        int
+	Id        int64
 	OrderInfo *OrderInfo `orm:"rel(fk)"`
 	GoodsSKU  *GoodsSKU  `orm:"rel(fk)"`
 	Count     int        `orm:"default(1)"` // 商品数量
@@ -41,7 +41,7 @@ type PayParams struct {
 }
 
 // 支付订单查询
-func GetPayOrderInfo(sn string, id int) (PayParams, error) {
+func GetPayOrderInfo(sn string, id int64) (PayParams, error) {
 	o := orm.NewOrm()
 	var data PayParams
 	qb, _ := orm.NewQueryBuilder("mysql")
