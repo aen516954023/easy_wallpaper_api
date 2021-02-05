@@ -10,10 +10,9 @@ func init() {
 
 // 首页轮播商品展示表
 type IndexGoodsBanner struct {
-	Id       int
-	GoodsSKU *GoodsSKU `orm:"rel(fk)"`
-	Image    string    // 商品图片
-	Index    int       `orm:"default(0)"` // 商品展示顺序
+	Id    int
+	Image string // 商品图片
+	Index int    `orm:"default(0)"` // 商品展示顺序
 
 }
 

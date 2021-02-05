@@ -46,15 +46,15 @@ func (this *Notify) CallbackNotify() {
 	}
 
 	// 查询订单信息
-	nums, err := models.GetNotifyOrderInfo(orderCode)
-	if err != nil || nums <= 0 {
+	orderInfo, err := models.GetNotifyOrdersPay(orderCode, 1)
+	if err != nil {
 		log.Error("查询支付单号信息错误:" + fmt.Sprintf("%s", err))
 		return
 	}
 	// 更新 订单状态 | 支付时间
 	o := orm.NewOrm()
 	num, errs := o.QueryTable("order_info").
-		Filter("trade_no", orderCode).
+		Filter("trade_no", orderInfo.OrderSn).
 		Filter("order_status", 1).
 		Update(orm.Params{
 			"order_status": status,
