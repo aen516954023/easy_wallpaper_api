@@ -11,6 +11,17 @@ type Orders struct {
 	Base
 }
 
+// @Title 我的订单
+// @Description 用户我的订单列表
+// @Param	token		header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /my_orders [post]
+func (this *Orders) MyOrders() {
+	//接收参数 按条件查询订单信息
+	//获取当前用户的所有订单信息
+}
+
 // @Title 订单大厅
 // @Description 订单大厅，只有师傅用户能够查看
 // @Param	token		header 	string	true		"the token"
