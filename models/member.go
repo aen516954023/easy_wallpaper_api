@@ -10,9 +10,10 @@ func init() {
 }
 
 type EMembers struct {
-	Id     int64
-	OpenId string
-	Phone  string
+	Id       int64
+	Nickname string
+	OpenId   string
+	Phone    string
 }
 
 //通过openid查询用户信息

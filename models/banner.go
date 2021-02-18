@@ -5,28 +5,21 @@ import (
 )
 
 func init() {
-	orm.RegisterModel(new(IndexGoodsBanner))
+	orm.RegisterModel(new(EBanner))
 }
 
 // 首页轮播商品展示表
-type IndexGoodsBanner struct {
-	Id    int
-	Image string // 商品图片
-	Index int    `orm:"default(0)"` // 商品展示顺序
-
-}
-
-type IndexBanner struct {
+type EBanner struct {
 	Id         int
-	GoodsSKUId int
-	Image      string // 商品图片
-	Index      int    // 商品展示顺序
+	BannerName string
+	Images     string // 图片
+	Sort       int    // 展示顺序
 }
 
 // 获取首页轮播数据
-func GetBannerAll() (int64, []IndexBanner, error) {
-	var data []IndexBanner
+func GetBannerAll() (int64, []EBanner, error) {
+	var data []EBanner
 	o := orm.NewOrm()
-	num, err := o.Raw("SELECT * FROM index_goods_banner").QueryRows(&data)
+	num, err := o.Raw("SELECT * FROM e_banner").QueryRows(&data)
 	return num, data, err
 }

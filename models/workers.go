@@ -11,11 +11,12 @@ type EMasterWorker struct {
 	Mid        int
 	Image      string
 	IsRealName int
+	Status     int
 }
 
 func GetRecommendList(limit int) (int64, []EMasterWorker, error) {
 	o := orm.NewOrm()
 	var data []EMasterWorker
-	num, err := o.QueryTable(new(EMasterWorker)).Filter("status", 1).Limit(limit).All(&data)
+	num, err := o.QueryTable("e_master_worker").Filter("status", 1).Limit(limit).All(&data)
 	return num, data, err
 }

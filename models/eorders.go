@@ -16,6 +16,7 @@ type EOrders struct {
 	MoreDescription      string
 	OrderType            int
 	Status               int
+	Images               string
 	CreateAt             string
 }
 
@@ -24,7 +25,7 @@ func init() {
 }
 
 //查看所有订单列表
-func GetOrdersAll() (int64, []EOrders, error) {
+func GetOrdersAll(status int) (int64, []EOrders, error) {
 	o := orm.NewOrm()
 	var data []EOrders
 	num, err := o.QueryTable("e_orders").All(&data)

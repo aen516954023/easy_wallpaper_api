@@ -11,23 +11,60 @@ type Orders struct {
 	Base
 }
 
-// @Title 订单大厅
-// @Description 订单大厅，只有师傅用户能够查看
+// @Title 订单列表
+// @Description 用户订单列表
 // @Param	token		header 	string	true		"the token"
+// @Param	status		query 	int 	true		"the orders status"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
-// @router /get_orders_all [post]
+// @router /get_orders [post]
 func (this *Orders) Index() {
-
-	// 获取地理位置 查询当前地区订单信息 Todo
-
-	num, data, err := models.GetOrdersAll()
+	// 接收订单状态参数
+	status, _ := this.GetInt("status")
+	s := 0
+	if status != 0 {
+		s = status
+	}
+	num, data, err := models.GetOrdersAll(s)
 	if err == nil && num > 0 {
 		this.Data["json"] = ReturnSuccess(0, "success", data, num)
 		this.ServeJSON()
 		return
 	}
 	this.Data["json"] = ReturnError(40000, "没有查询到关信息")
+	this.ServeJSON()
+}
+
+// @Title 下单页数据接口
+// @Description 下单页初始化数据接口
+// @Success 200 {string} auth success
+// @Failure 403 typeId not exist
+// @router /order_page [post]
+func (this *Orders) OrderPages() {
+	var data = make(map[string]interface{})
+	//typeId,_ := h.GetInt("type_id")
+
+	// 获取用户信息
+	data["user_name"] = this.CurrentLoginUser.Nickname
+	data["phone"] = this.CurrentLoginUser.Phone
+	// 服务类型，
+	var typesData []string
+	_, typesAll, err := models.GetAllServiceType()
+	if err == nil {
+		for _, val := range typesAll {
+			typesData = append(typesData, val.TypeName)
+		}
+		data["types"] = typesData
+	}
+	// 施工类型 Construction type
+	//var constructionData []string
+	var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
+	//constructionData[0] = "主料+辅料+施工"
+	//constructionData[1] = "仅施工"
+	//constructionData[2] = "辅料+施工"
+	data["construction"] = constructionData
+
+	this.Data["json"] = ReturnSuccess(40000, "success", data, 1)
 	this.ServeJSON()
 }
 
@@ -56,7 +93,7 @@ func (this *Orders) SaveOrder() {
 	oldWallpaper, _ := this.GetInt("is_tear_of_old_wallpaper") // 是否清除旧纸
 	basementMembrane, _ := this.GetInt("basement_membrane")    // 是否刷基膜
 	moreDescription := this.GetString("desc")                  // 需求描述
-	// 图片上传
+	images := this.GetString("images")                         // 图片
 
 	// 用户参数
 	userId := this.CurrentLoginUser.Id // 当前用户id
@@ -110,6 +147,7 @@ func (this *Orders) SaveOrder() {
 	orderinfo.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	orderinfo.Status = 1
 	orderinfo.OrderType = orderType
+	orderinfo.Images = images
 	orderinfo.Address = Address
 	fmt.Println(orderinfo)
 	//panic("orderinfo")

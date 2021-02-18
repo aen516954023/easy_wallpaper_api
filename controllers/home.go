@@ -4,6 +4,8 @@ import (
 	"easy_wallpaper_api/models"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"time"
 )
 
 type Home struct {
@@ -26,9 +28,14 @@ func (h *Home) Index() {
 		//fmt.Println(err)
 	}
 	// 分类
-	data["types"] = ""
+	num, typeData, typeErr := models.GetAllServiceType()
+	if typeErr == nil && num > 0 {
+		data["types"] = typeData
+	} else {
+		data["types"] = ""
+	}
 
-	// 推荐列表
+	// 师傅推荐列表
 	numg, goods, errg := models.GetRecommendList(4)
 	if errg == nil && numg > 0 {
 		// 处理数据转换
@@ -67,30 +74,31 @@ func (h *Home) Index() {
 	h.ServeJSON()
 }
 
-// @Title 币种数据接口
-// @Description 币种数据接口
+// @Title 图片上传
+// @Description 图片上传接口
 // @Success 200 {string} auth success
-// @Failure 403 typeId not exist
-// @router /type_push [get]
-func (h *Home) TypeDataPush() {
-	num, data, err := models.GetAllServiceType()
-	if err == nil && num > 0 {
-		flag, _ := h.GetInt("flag")
-		if flag == 1 {
-			dataMap := make(map[int]string, len(data))
-			//for i := 0; i < len(data); i++ {
-			//	//if dataMap[i] == nil {
-			//	//	dataMap[i] = map[int]string
-			//	//}
-			//	dataMap[data[i].Id] = data[i].Name
-			//}
-			h.Data["json"] = ReturnSuccess(0, "success", dataMap, 0)
-		} else {
-			h.Data["json"] = ReturnSuccess(0, "success", data, 0)
-		}
-		h.ServeJSON()
-	} else {
-		h.Data["json"] = ReturnError(40000, "error")
-		h.ServeJSON()
+// @Failure 403 user not exist
+// @router /uploads [post]
+func (this *Home) Uploads() {
+
+	f, h, err := this.GetFile("image")
+	if err != nil {
+		logs.Error("getfile err ", err)
+		this.Data["json"] = ReturnError(40001, "上传失败")
+		this.ServeJSON()
+		return
 	}
+	defer f.Close()
+	fileName := time.Now().Format("2006-01-02-15-04-05-") + h.Filename
+	path := fmt.Sprint("static/upload/", fileName)
+	fmt.Println(fileName)
+	errs := this.SaveToFile("image", path) // 保存位置在 static/upload, 没有文件夹要先创建
+	if errs == nil {
+		this.Data["json"] = ReturnSuccess(0, "message", beego.AppConfig.String("appurl")+"/"+path, 1)
+		this.ServeJSON()
+		return
+	}
+	logs.Error("uploads err ", errs)
+	this.Data["json"] = ReturnError(40003, "上传失败")
+	this.ServeJSON()
 }
