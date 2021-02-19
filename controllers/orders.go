@@ -44,12 +44,26 @@ func (this *Orders) Index() {
 // @Failure 403 user not exist
 // @router /get_order_details [get]
 func (this *Orders) OrderDetails() {
+	ValueData := make(map[string]interface{})
 	// 接收订单状态参数
 	orderId, _ := this.GetInt("order_id")
 
 	data, err := models.GetOrderInfo(orderId)
+	//接口数据 截止时间| 师傅列表 | 参与人数 | 订单信息 | 基本信息 | 地址信息
+	tempTime := 60 * 60 * 24 * 3
+	ValueData["last_time"] = (strToUnixTime(data.CreateAt) + int64(tempTime)) - time.Now().Unix()
 	if err == nil {
-		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+		//获取参与报价的师傅列表最多5人
+		num, list, listErr := models.GetOrderWorkerList(data.Id)
+		if listErr == nil && num > 0 {
+			ValueData["master_worker_list"] = list
+		} else {
+			ValueData["master_worker_list"] = nil
+			ValueData["master_worker_list_num"] = num
+		}
+		//获取订单详情信息
+		ValueData["info"] = data
+		this.Data["json"] = ReturnSuccess(0, "success", ValueData, 1)
 		this.ServeJSON()
 		return
 	}

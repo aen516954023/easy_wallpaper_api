@@ -31,3 +31,18 @@ func InsertOrderTaking(oid, mid, wid int) bool {
 	}
 	return false
 }
+
+type OrderWorkerList struct {
+	Id           int
+	Name         string
+	Image        string
+	ServiceCount int
+}
+
+//参与报价的师傅列表数据
+func GetOrderWorkerList(orderId int) (int64, []OrderWorkerList, error) {
+	o := orm.NewOrm()
+	var data []OrderWorkerList
+	num, err := o.Raw("SELECT * FROM e_member_of_master_worker w LEFT JOIN e_master_worker m ON m.id=w.w_id").QueryRows(&data)
+	return num, data, err
+}
