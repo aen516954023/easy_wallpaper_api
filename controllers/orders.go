@@ -3,6 +3,7 @@ package controllers
 import (
 	"easy_wallpaper_api/models"
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"time"
 )
@@ -28,6 +29,27 @@ func (this *Orders) Index() {
 	num, data, err := models.GetOrdersAll(s)
 	if err == nil && num > 0 {
 		this.Data["json"] = ReturnSuccess(0, "success", data, num)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40000, "没有查询到关信息")
+	this.ServeJSON()
+}
+
+// @Title 订单详情页
+// @Description 订单详情页接口数据
+// @Param	token		header 	string	true		"the token"
+// @Param	order_id		query 	int 	true		"the orders id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /get_order_details [get]
+func (this *Orders) OrderDetails() {
+	// 接收订单状态参数
+	orderId, _ := this.GetInt("order_id")
+
+	data, err := models.GetOrderInfo(orderId)
+	if err == nil {
+		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
 		this.ServeJSON()
 		return
 	}
@@ -206,7 +228,33 @@ func (this *Orders) ConfirmOrderChange() {
 	// 4 新增订单步骤表信息
 }
 
-// 取消订单
+// @Title 取消订单
+// @Description 取消订单接口
+// @Param	token		header 	string	true		"the token"
+// @Param	order_id		query 	int 	true		"the orders id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /order_cancel [get]
+func (this *Orders) OrderCancel() {
+	// 接收订单状态参数
+	orderId, _ := this.GetInt("order_id")
+
+	data, err := models.GetOrderInfo(orderId)
+	if err == nil {
+		boolVal, errs := models.OrderCancel(data.Id, -1)
+		if boolVal {
+			this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+			this.ServeJSON()
+			return
+		}
+		logs.Error("取消订单操作失败:" + fmt.Sprint("%s", errs))
+		this.Data["json"] = ReturnError(40000, "取消订单操作失败")
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40000, "没有查询到关信息")
+	this.ServeJSON()
+}
 
 // @Title 全额支付接口
 // @Description 师傅上门确认并更新订单信息，用户支付全额
