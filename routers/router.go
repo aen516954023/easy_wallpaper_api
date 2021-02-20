@@ -35,6 +35,11 @@ func init() {
 				&controllers.Workers{},
 			),
 		),
+		beego.NSNamespace("/members",
+			beego.NSInclude(
+				&controllers.Members{},
+			),
+		),
 		beego.NSNamespace("/notify",
 			beego.NSInclude(
 				&controllers.Notify{},

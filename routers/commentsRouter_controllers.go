@@ -25,6 +25,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Members"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Members"],
+		beego.ControllerComments{
+			Method:           "Index",
+			Router:           "/get_members_center",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Notify"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Notify"],
 		beego.ControllerComments{
 			Method:           "CallbackNotify",
@@ -56,6 +65,15 @@ func init() {
 		beego.ControllerComments{
 			Method:           "ConfirmOrderChange",
 			Router:           "/confirm_order_change",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Orders"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Orders"],
+		beego.ControllerComments{
+			Method:           "MasterOrderList",
+			Router:           "/get_master_orders_list",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
@@ -137,6 +155,24 @@ func init() {
 		beego.ControllerComments{
 			Method:           "Verify",
 			Router:           "/verify",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Workers"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Workers"],
+		beego.ControllerComments{
+			Method:           "Apply",
+			Router:           "/apply",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Workers"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Workers"],
+		beego.ControllerComments{
+			Method:           "SettleInPage",
+			Router:           "/get_settle_in_page",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,

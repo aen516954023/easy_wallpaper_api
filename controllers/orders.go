@@ -331,3 +331,36 @@ func (this *Orders) PayOrder() {
 	}
 
 }
+
+// @Title 订单大厅
+// @Description 师傅订单大厅数据接口
+// @Param	token		header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /get_master_orders_list [post]
+func (this *Orders) MasterOrderList() {
+
+	num, data, err := models.GetOrdersAll(1)
+	if err == nil && num > 0 {
+		returnVal := make([]map[string]interface{}, len(data))
+		for k := 0; k < len(returnVal); k++ {
+			// 一定要加下面的nil判断  否则会报错 Handler crashed with error assignment to entry in nil map  map未赋值
+			if returnVal[k] == nil {
+				returnVal[k] = map[string]interface{}{}
+			}
+			returnVal[k]["order_sn"] = 00000
+			returnVal[k]["service_type_str"] = 1
+			returnVal[k]["service_time"] = data[k].ConstructionTime
+			returnVal[k]["area"] = data[k].Area
+			returnVal[k]["service_list"] = data[k].IsMateriel
+			returnVal[k]["create_time"] = data[k].CreateAt
+			returnVal[k]["status"] = data[k].Status
+		}
+
+		this.Data["json"] = ReturnSuccess(0, "success", returnVal, num)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40000, "没有查询到关信息")
+	this.ServeJSON()
+}

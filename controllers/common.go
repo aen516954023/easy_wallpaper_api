@@ -54,7 +54,7 @@ func strToUnixTime(str string) int64 {
 	return res.Unix()
 }
 
-// 时间转时间戳
+// 时间戳转时间
 func UnixTimeToSTr(timestamp int64) string {
 	objectTime := time.Unix(timestamp, 0)
 	date := objectTime.Format("2006-01-02 15:04:05")
