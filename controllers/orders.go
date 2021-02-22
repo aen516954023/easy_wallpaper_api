@@ -227,21 +227,6 @@ func (this *Orders) PayAdvanceOrder() {
 	// 4 支付超时处理
 }
 
-// @Title 确认订单信息变更接口
-// @Description 师傅现场量房，更新需求信息及发起最终订单确认
-// @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
-// @Success 200 {string} auth success
-// @Failure 403 user not exist
-// @router /confirm_order_change [post]
-//
-func (this *Orders) ConfirmOrderChange() {
-	// 1 接收参数，要修改的订单id, 修改后的订单参数
-	// 2 更新订单信息表 相关需求变更参数，更新订单状态
-	// 3 新增全额支付订单信息表 支付总金额
-	// 4 新增订单步骤表信息
-}
-
 // @Title 取消订单
 // @Description 取消订单接口
 // @Param	token		header 	string	true		"the token"
@@ -363,4 +348,52 @@ func (this *Orders) MasterOrderList() {
 	}
 	this.Data["json"] = ReturnError(40000, "没有查询到关信息")
 	this.ServeJSON()
+}
+
+// @Title 订单详情
+// @Description 师傅订单大厅详情数据接口
+// @Param	token		header 	string	true		"the token"
+// @Param	id		query 	string	true		"the order_id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /get_master_orders_info [get]
+func (this *Orders) GetMasterOrdersInfo() {
+	oId, _ := this.GetInt("order_id")
+	if oId == 0 {
+		this.Data["json"] = ReturnError(40001, "参数错误")
+		this.ServeJSON()
+		return
+	}
+	data, err := models.GetOrderInfo(oId)
+	if err == nil {
+		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40002, "订单信息不存在")
+	this.ServeJSON()
+}
+
+// @Title 参与报价
+// @Description 师傅参与报价确认
+// @Param	order_id		query 	int	true		"the order id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /participate_offer [post]
+func (this *Orders) ParticipateOffer() {
+
+}
+
+// @Title 确认订单信息变更接口
+// @Description 师傅现场量房，更新需求信息及发起最终订单确认
+// @Param	order_id		query 	int	true		"the order id"
+// @Param	pay_type		query 	int	true		"the pay type"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /confirm_order_change [post]
+func (this *Orders) ConfirmOrderChange() {
+	// 1 接收参数，要修改的订单id, 修改后的订单参数
+	// 2 更新订单信息表 相关需求变更参数，更新订单状态
+	// 3 新增全额支付订单信息表 支付总金额
+	// 4 新增订单步骤表信息
 }
