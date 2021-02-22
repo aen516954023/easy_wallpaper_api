@@ -12,6 +12,8 @@ type Orders struct {
 	Base
 }
 
+var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
+
 // @Title 订单列表
 // @Description 用户订单列表
 // @Param	token		header 	string	true		"the token"
@@ -94,7 +96,7 @@ func (this *Orders) OrderPages() {
 	}
 	// 施工类型 Construction type
 	//var constructionData []string
-	var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
+	//var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
 	//constructionData[0] = "主料+辅料+施工"
 	//constructionData[1] = "仅施工"
 	//constructionData[2] = "辅料+施工"
@@ -333,11 +335,13 @@ func (this *Orders) MasterOrderList() {
 			if returnVal[k] == nil {
 				returnVal[k] = map[string]interface{}{}
 			}
-			returnVal[k]["order_sn"] = 00000
-			returnVal[k]["service_type_str"] = 1
+			returnVal[k]["id"] = data[k].Id
+			returnVal[k]["order_sn"] = "00000"
+			serviceTypeObj, _ := models.GetServiceType(int64(data[k].ServiceId))
+			returnVal[k]["service_type_str"] = serviceTypeObj.TypeName
 			returnVal[k]["service_time"] = data[k].ConstructionTime
 			returnVal[k]["area"] = data[k].Area
-			returnVal[k]["service_list"] = data[k].IsMateriel
+			returnVal[k]["service_list"] = constructionData[data[k].IsMateriel]
 			returnVal[k]["create_time"] = data[k].CreateAt
 			returnVal[k]["status"] = data[k].Status
 		}
