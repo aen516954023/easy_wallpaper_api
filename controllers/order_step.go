@@ -1,10 +1,39 @@
 package controllers
 
+import (
+	"easy_wallpaper_api/models"
+	"time"
+)
+
 /**
 订单步骤业务逻辑
 */
 type OrderStep struct {
 	Base
+}
+
+// @Title 确认师傅
+// @Description 用户确认选择师傅
+// @Param	order_id		query 	int	true		"the order id"
+// @Param	w_id		query 	int	true		"the worker id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /advance_order [post]
+//
+func (this *OrderStep) ConfirmMasterWorker() {
+	// order_step 表新增选择的师傅记录 状态为 0
+	// 更新师傅参与表中其它参与的师傅的状态
+
+	orderId, _ := this.GetInt("order_id")
+	workerId, _ := this.GetInt("w_id")
+	cTime := UnixTimeToSTr(time.Now().Unix())
+	if models.InsertMasterOrder(orderId, int(this.CurrentLoginUser.Id), workerId, cTime) {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40003, "选择失败，请稍后再试")
+		this.ServeJSON()
+	}
 }
 
 // @Title 基础报价

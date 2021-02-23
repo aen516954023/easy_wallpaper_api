@@ -125,8 +125,8 @@ func (this *Workers) OrderTaking() {
 		this.ServeJSON()
 		return
 	}
-
-	if models.InsertOrderTaking(oId, mId, int(this.CurrentLoginUser.Id)) {
+	boolVal, _ := models.InsertOrderTaking(oId, mId)
+	if boolVal {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
 		this.ServeJSON()
 		return

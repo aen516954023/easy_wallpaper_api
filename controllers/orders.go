@@ -291,9 +291,48 @@ func (this *Orders) GetMasterOrdersInfo() {
 // @Title 参与报价
 // @Description 师傅参与报价确认
 // @Param	order_id		query 	int	true		"the order id"
+// @Param	master_worker_id		query 	int	true		"the master worker id"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /participate_offer [post]
 func (this *Orders) ParticipateOffer() {
+	orderId, _ := this.GetInt("o_id")
+	wId, _ := this.GetInt("w_id")
 
+	if orderId == 0 {
+		this.Data["json"] = ReturnError(40001, "缺少订单id参数")
+		this.ServeJSON()
+		return
+	}
+	if wId == 0 {
+		this.Data["json"] = ReturnError(40001, "缺少师傅id参数")
+		this.ServeJSON()
+		return
+	}
+	//判断师傅是否参与过
+	if models.GetOrderTasking(orderId, wId) {
+		this.Data["json"] = ReturnError(40002, "你已参与过了")
+		this.ServeJSON()
+		return
+	}
+
+	//一个订单最多参与人次
+	num, countErr := models.GetTaskCount(orderId)
+	if countErr == nil {
+		if num >= 5 {
+			this.Data["json"] = ReturnError(40002, "订单参与人数已满")
+			this.ServeJSON()
+			return
+		}
+	}
+
+	boolVal, err := models.InsertOrderTaking(orderId, wId)
+	if boolVal {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
+		this.ServeJSON()
+		return
+	}
+	logs.Error("师傅参与错误:" + fmt.Sprintf("%v", err))
+	this.Data["json"] = ReturnError(40002, "参与失败，请稍后再试")
+	this.ServeJSON()
 }

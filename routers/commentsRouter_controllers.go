@@ -45,7 +45,7 @@ func init() {
 
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"],
 		beego.ControllerComments{
-			Method:           "Acceptance",
+			Method:           "ConfirmAcceptance",
 			Router:           "/Acceptance",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
@@ -54,7 +54,7 @@ func init() {
 
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"],
 		beego.ControllerComments{
-			Method:           "ConfirmAcceptance",
+			Method:           "Acceptance",
 			Router:           "/Acceptance",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
@@ -73,6 +73,15 @@ func init() {
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"],
 		beego.ControllerComments{
 			Method:           "AdvanceOrder",
+			Router:           "/advance_order",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"],
+		beego.ControllerComments{
+			Method:           "ConfirmMasterWorker",
 			Router:           "/advance_order",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
