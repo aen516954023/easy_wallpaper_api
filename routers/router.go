@@ -40,6 +40,16 @@ func init() {
 				&controllers.Members{},
 			),
 		),
+		beego.NSNamespace("/order_step",
+			beego.NSInclude(
+				&controllers.OrderStep{},
+			),
+		),
+		beego.NSNamespace("/pay",
+			beego.NSInclude(
+				&controllers.Pay{},
+			),
+		),
 		beego.NSNamespace("/notify",
 			beego.NSInclude(
 				&controllers.Notify{},
