@@ -180,15 +180,6 @@ func init() {
 
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Pay"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Pay"],
 		beego.ControllerComments{
-			Method:           "PayAdvanceOrder",
-			Router:           "/pay_advance_order",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Pay"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Pay"],
-		beego.ControllerComments{
 			Method:           "PayOrder",
 			Router:           "/pay_order",
 			AllowHTTPMethods: []string{"post"},

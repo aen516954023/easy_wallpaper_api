@@ -3,27 +3,68 @@ package controllers
 import (
 	"easy_wallpaper_api/models"
 	"fmt"
+	"github.com/iGoogle-ink/gopay"
+	"github.com/iGoogle-ink/gopay/pkg/util"
+	"github.com/iGoogle-ink/gopay/wechat/v3"
 )
 
-/**
-微信支付相关信息
-商户号： 1511774241
-API密钥： J4sQ3YdrgAyrUznO13KKDE7e5D3j1cJz
-*/
 type Pay struct {
 	Base
 }
 
+//定义常量
+//    appId：应用ID
+//    mchId：商户ID
+//    apiKey：API秘钥值
+//    isProd：是否是正式环境
+const (
+	appId  = "wxdaa2ab9ef87b5497"
+	mchId  = "1511774241"
+	apiKey = "J4sQ3YdrgAyrUznO13KKDE7e5D3j1cJz"
+)
+
 // @Title 微信支付
-// @Param	order_id		query 	int	true		"the order id"
-// @Success 200 {string} auth success
-// @Failure 403 user not exist
-// @router /pay_advance_order [post]
 func (this *Pay) PayAdvanceOrder() {
-	// 1 接收参数 服务订单id 支付订单id  查询支付信息
-	// 2 调用微信支付
-	// 3 回调中处理订单状态
-	// 4 支付超时处理
+	// 初始化微信客户端
+
+	client := wechat.NewClient(appId, mchId, apiKey, false)
+	// 添加微信证书 Path 路径
+	//    certFilePath：apiclient_cert.pem 路径
+	//    keyFilePath：apiclient_key.pem 路径
+	//    pkcs12FilePath：apiclient_cert.p12 路径
+	//    返回err
+	client.AddCertFilePath("config/cert/apiclient_cert.pem", "config/cert/apiclient_key.pem", "config/cert/apiclient_cert.p12")
+
+	// 初始化 BodyMap
+
+	bm := make(gopay.BodyMap)
+	bm.Set("nonce_str", util.GetRandomString(32))
+	bm.Set("body", "小程序测试支付")
+	bm.Set("out_trade_no", "000000")
+	bm.Set("total_fee", 1)
+	bm.Set("spbill_create_ip", "127.0.0.1")
+	bm.Set("notify_url", "http://www.gopay.ink")
+	bm.Set("trade_type", gopay.TradeType_Mini)
+	bm.Set("device_info", "WEB")
+	bm.Set("sign_type", gopay.SignType_MD5)
+	bm.Set("openid", "o0Df70H2Q0fY8JXh1aFPIRyOBgu8")
+
+	// 嵌套json格式数据（例如：H5支付的 scene_info 参数）
+	h5Info := make(map[string]string)
+	h5Info["type"] = "Wap"
+	h5Info["wap_url"] = "http://www.gopay.ink"
+	h5Info["wap_name"] = "H5测试支付"
+
+	sceneInfo := make(map[string]map[string]string)
+	sceneInfo["h5_info"] = h5Info
+
+	bm.Set("scene_info", sceneInfo)
+
+	// 参数 sign ，可单独生成赋值到BodyMap中；也可不传sign参数，client内部会自动获取
+	// 如需单独赋值 sign 参数，需通过下面方法，最后获取sign值并在最后赋值此参数
+	sign := wechat.GetParamSign("wxdaa2ab9ef87b5497", mchId, apiKey, body)
+	// sign, _ := wechat.GetSanBoxParamSign("wxdaa2ab9ef87b5497", mchId, apiKey, body)
+	bm.Set("sign", sign)
 }
 
 // @Title 支付接口
