@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"easy_wallpaper_api/models"
-	"time"
+	"github.com/beego/beego/v2/core/validation"
+	"log"
 )
 
 /**
@@ -21,13 +22,11 @@ type OrderStep struct {
 // @router /advance_order [post]
 //
 func (this *OrderStep) ConfirmMasterWorker() {
-	// order_step 表新增选择的师傅记录 状态为 0
+	// order_step 表新增选择的师傅记录
 	// 更新师傅参与表中其它参与的师傅的状态
-
 	orderId, _ := this.GetInt("order_id")
 	workerId, _ := this.GetInt("w_id")
-	cTime := UnixTimeToSTr(time.Now().Unix())
-	if models.InsertMasterOrder(orderId, int(this.CurrentLoginUser.Id), workerId, cTime) {
+	if models.InsertOrdersStep(orderId, int(this.CurrentLoginUser.Id), workerId) {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
 		this.ServeJSON()
 	} else {
@@ -45,21 +44,69 @@ func (this *OrderStep) ConfirmMasterWorker() {
 // @router /advance_order [post]
 //
 func (this *OrderStep) AdvanceOrder() {
-	// 2 更新订单状态
+	// 接收参数
+	orderId, _ := this.GetInt("order_id")
+	mId := int(this.CurrentLoginUser.Id)
+	wId, _ := this.GetInt("w_id")
+	serviceType, _ := this.GetInt("service_type")
+	constructionType, _ := this.GetInt("construction_type")
+	price, _ := this.GetFloat("price")
+	unit, _ := this.GetInt("unit")
+	info := this.GetString("info")
+	depositPrice, _ := this.GetFloat("deposit_price")
+	// 参数效验 Todo
+	valid := validation.Validation{}
+	valid.Required(orderId, "order_id")
+	valid.Required(wId, "w_id")
+	valid.Required(serviceType, "serviceType")
+	valid.Required(constructionType, "constructionType")
+	valid.Required(price, "price")
+	valid.Required(info, "info")
+	valid.Required(depositPrice, "depositPrice")
+
+	if valid.HasErrors() {
+		// 如果有错误信息，证明验证没通过
+		for _, err := range valid.Errors {
+			log.Fatal(err.Key, err.Message)
+			this.Data["json"] = ReturnError(40000, err.Key+err.Message)
+			this.ServeJSON()
+			return
+		}
+	}
+	// 新增订单步骤 并更新订单表对应的相关信息
+	if models.InsertOrdersStepTwo(orderId, mId, wId, serviceType, constructionType, unit, price, depositPrice, info) {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+		this.ServeJSON()
+	}
+
 }
 
 // @Title 确认基础报价
 // @Description 用户确认基础报价，并生成预支付订单
 // @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /confirm_advance_order [post]
 //
 func (this *OrderStep) ConfirmAdvanceOrder() {
-	// 1. 生成支付订单信息
+	oId, _ := this.GetInt("order_id")
+	//通过订单id 查询订单信息,与基础报价信息
+	data, err := models.GetOrderOfStepInfo(oId, 1)
+	if err != nil {
+		this.Data["json"] = ReturnError(40000, "订单信息不存在")
+		this.ServeJSON()
+		return
+	}
+	//生成支付订单信息
+	retVal, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 1, data.DepositPrice)
+	if retValErr == nil && retVal {
+		// 请求支付接口 获取预支付单号
 
-	// 2. 回调中处理逻辑
+		//再请求支付验签 并返回相关参数
+	}
 }
 
 // @Title 实际报价
@@ -70,10 +117,43 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 // @Failure 403 user not exist
 // @router /actual_offer [post]
 func (this *OrderStep) ActualOffer() {
-	// 1 接收参数，要修改的订单id, 修改后的订单参数
-	// 2 更新订单信息表 相关需求变更参数，更新订单状态
-	// 3 新增全额支付订单信息表 支付总金额
-	// 4 新增订单步骤表信息
+	// 接收参数
+	orderId, _ := this.GetInt("order_id")
+	mId := int(this.CurrentLoginUser.Id)
+	wId, _ := this.GetInt("w_id")
+	serviceType, _ := this.GetInt("service_type")
+	constructionType, _ := this.GetInt("construction_type")
+	price, _ := this.GetFloat("price")
+	unit, _ := this.GetInt("unit")
+	info := this.GetString("info")
+	depositPrice, _ := this.GetFloat("deposit_price")
+	// 参数效验 Todo
+	valid := validation.Validation{}
+	valid.Required(orderId, "order_id")
+	valid.Required(wId, "w_id")
+	valid.Required(serviceType, "serviceType")
+	valid.Required(constructionType, "constructionType")
+	valid.Required(price, "price")
+	valid.Required(info, "info")
+	valid.Required(depositPrice, "depositPrice")
+
+	if valid.HasErrors() {
+		// 如果有错误信息，证明验证没通过
+		for _, err := range valid.Errors {
+			log.Fatal(err.Key, err.Message)
+			this.Data["json"] = ReturnError(40000, err.Key+err.Message)
+			this.ServeJSON()
+			return
+		}
+	}
+	// 新增订单步骤 并更新订单表对应的相关信息
+	if models.InsertOrdersStepThree(orderId, mId, wId, serviceType, constructionType, unit, price, depositPrice, info) {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+		this.ServeJSON()
+	}
 }
 
 // @Title 实际价格确认
@@ -84,10 +164,7 @@ func (this *OrderStep) ActualOffer() {
 // @Failure 403 user not exist
 // @router /confirm_actual_offer [post]
 func (this *OrderStep) ConfirmActualOffer() {
-	// 1 接收参数，要修改的订单id, 修改后的订单参数
-	// 2 更新订单信息表 相关需求变更参数，更新订单状态
-	// 3 新增全额支付订单信息表 支付总金额
-	// 4 新增订单步骤表信息
+
 }
 
 // @Title 验收

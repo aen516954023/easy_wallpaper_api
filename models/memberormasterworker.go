@@ -10,6 +10,7 @@ type EMemberOrMasterWorker struct {
 	OId      int
 	MId      int
 	WId      int
+	Status   int
 	CreateAt string
 }
 

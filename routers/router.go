@@ -55,6 +55,11 @@ func init() {
 				&controllers.Notify{},
 			),
 		),
+		beego.NSNamespace("/test",
+			beego.NSInclude(
+				&controllers.Test{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

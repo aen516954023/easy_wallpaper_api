@@ -5,18 +5,20 @@ import (
 	"fmt"
 )
 
+/**
+微信支付相关信息
+商户号： 1511774241
+API密钥： J4sQ3YdrgAyrUznO13KKDE7e5D3j1cJz
+*/
 type Pay struct {
 	Base
 }
 
-// @Title 支付预付款订单接口
-// @Description 用户支付预付款订单动作
+// @Title 微信支付
 // @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /pay_advance_order [post]
-//
 func (this *Pay) PayAdvanceOrder() {
 	// 1 接收参数 服务订单id 支付订单id  查询支付信息
 	// 2 调用微信支付
