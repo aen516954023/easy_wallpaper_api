@@ -5,7 +5,6 @@ import (
 	"github.com/iGoogle-ink/gopay"
 	"github.com/iGoogle-ink/gopay/pkg/xlog"
 	"github.com/iGoogle-ink/gopay/wechat"
-	"net/http"
 )
 
 type Notify struct {
@@ -17,10 +16,10 @@ type Notify struct {
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /we_chat_pay [post]
-func (this *Notify) ParseWeChatNotifyAndVerifyWeChatSign(req *http.Request) string {
-	rsp := new(wechat.NotifyResponse)
+func (this *Notify) ParseWeChatNotifyAndVerifyWeChatSign() {
+
 	// 解析参数
-	bodyMap, err := wechat.ParseNotifyToBodyMap(req)
+	bodyMap, err := wechat.ParseNotifyToBodyMap(this.Ctx.Request)
 	if err != nil {
 		xlog.Debug("err:", err)
 	}
@@ -31,8 +30,14 @@ func (this *Notify) ParseWeChatNotifyAndVerifyWeChatSign(req *http.Request) stri
 		xlog.Debug("err:", err)
 	}
 	xlog.Debug("微信验签是否通过:", ok)
+	// 验证签名通过 处理业务逻辑
+	// 1. 更新支付订单信息
+	// 2. 更新订单步骤信息及状态 注意区分定金和全额的类型
 
+	rsp := new(wechat.NotifyResponse)
 	rsp.ReturnCode = gopay.SUCCESS
 	rsp.ReturnMsg = "OK"
-	return rsp.ToXmlString()
+	//return rsp.ToXmlString()
+	this.Data["xml"] = rsp
+	this.ServeXML()
 }

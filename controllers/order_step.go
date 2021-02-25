@@ -90,7 +90,6 @@ func (this *OrderStep) AdvanceOrder() {
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /confirm_advance_order [post]
-//
 func (this *OrderStep) ConfirmAdvanceOrder() {
 	oId, _ := this.GetInt("order_id")
 	//通过订单id 查询订单信息,与基础报价信息
@@ -167,32 +166,74 @@ func (this *OrderStep) ActualOffer() {
 // @Title 实际价格确认
 // @Description 用户确认实际价格，并生成支付订单
 // @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /confirm_actual_offer [post]
 func (this *OrderStep) ConfirmActualOffer() {
 
+	oId, _ := this.GetInt("order_id")
+	//通过订单id 查询订单信息,实际报价信息
+	data, err := models.GetOrderOfStepInfo(oId, 2)
+	if err != nil {
+		this.Data["json"] = ReturnError(40000, "订单信息不存在")
+		this.ServeJSON()
+		return
+	}
+	//生成支付订单信息
+	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 2, data.TotalPrice)
+	if retValErr == nil && insertId > 0 {
+		this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40004, "操作失败，请稍后再试")
+	this.ServeJSON()
 }
 
 // @Title 验收
 // @Description 施工完成，师傅发起验收通知
 // @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /Acceptance [post]
 func (this *OrderStep) Acceptance() {
-
+	oId, _ := this.GetInt("order_id")
+	//通过订单id 查询订单信息,实际报价信息
+	data, err := models.GetOrderOfStepInfo(oId, 4)
+	if err != nil {
+		this.Data["json"] = ReturnError(40000, "订单信息不存在")
+		this.ServeJSON()
+		return
+	}
+	if models.ModifyStepStatus(data.OId, int(this.CurrentLoginUser.Id), 5) {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+	this.ServeJSON()
 }
 
 // @Title 验收确认
 // @Description 用户验收确认
 // @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /Acceptance [post]
 func (this *OrderStep) ConfirmAcceptance() {
-
+	oId, _ := this.GetInt("order_id")
+	//通过订单id 查询订单信息,实际报价信息
+	data, err := models.GetOrderOfStepInfo(oId, 5)
+	if err != nil {
+		this.Data["json"] = ReturnError(40000, "订单信息不存在")
+		this.ServeJSON()
+		return
+	}
+	if models.ModifyStepStatus(data.OId, int(this.CurrentLoginUser.Id), 6) {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+	this.ServeJSON()
 }

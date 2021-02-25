@@ -20,6 +20,7 @@ type EOrderStep struct {
 	Unit             int
 	Price            float64
 	DepositPrice     float64
+	TotalPrice       float64
 	Info             string
 	Status           int
 	CreateAt         string
@@ -144,6 +145,18 @@ func InsertOrdersStepThree(oId, mId, wId, sType, cType, unit int, price, dPrice 
 	data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	InsertId, err := o.Insert(&data)
 	if err == nil && InsertId > 0 {
+		return true
+	}
+	return false
+}
+
+// 更新订单状态
+func ModifyStepStatus(oId, mId, status int) bool {
+	o := orm.NewOrm()
+	num, err := o.QueryTable("e_orders_step").Filter("o_id", oId).Filter("m_id", mId).Update(orm.Params{
+		"status": status,
+	})
+	if err == nil && num > 0 {
 		return true
 	}
 	return false
