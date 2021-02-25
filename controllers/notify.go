@@ -12,9 +12,8 @@ type Notify struct {
 	beego.Controller
 }
 
-// @Title 解析notify参数、验签、返回数据到微信
-// @Description 订单支付接口
-// @Param	order_id		query 	int	true		"the order id"
+// @Title notify回调
+// @Description 解析notify参数、验签、返回数据到微信
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /we_chat_pay [post]

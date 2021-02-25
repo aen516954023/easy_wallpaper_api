@@ -42,14 +42,14 @@ func (this *WxPay) PayOrder() {
 	if err == nil && data.Id > 0 {
 		//请求微信统一下单
 		price := int64(data.TotalPrice * 100)
-		unifiedOrder(data.OrderSn, this.getClientIp(), int(price))
+		unifiedOrder(data.OrderSn, this.CurrentLoginUser.OpenId, this.getClientIp(), int(price))
 	}
 	this.Data["json"] = ReturnError(40000, "无效订单,未查询到订单信息")
 	this.ServeJSON()
 }
 
 // 发起微信支付请求 -- 统一下单接口
-func unifiedOrder(sn, ip string, price int) {
+func unifiedOrder(sn, openId, ip string, price int) {
 	//初始化微信客户端
 	//    appId：应用ID
 	//    mchId：商户ID
@@ -71,7 +71,7 @@ func unifiedOrder(sn, ip string, price int) {
 	bm.Set("out_trade_no", sn)
 	bm.Set("total_fee", price)
 	bm.Set("spbill_create_ip", ip)
-	bm.Set("notify_url", "http://www.gopay.ink")
+	bm.Set("notify_url", "http://mp.yitiegongfang.com/v1/notify/we_chat_pay")
 	bm.Set("trade_type", wechat.TradeType_Mini)
 	bm.Set("device_info", "miniPro")
 	bm.Set("sign_type", wechat.SignType_MD5)
@@ -84,7 +84,7 @@ func unifiedOrder(sn, ip string, price int) {
 	//sceneInfo["mini_info"] = miniInfo
 	//bm.Set("scene_info", sceneInfo)
 
-	//bm.Set("openid", "o0Df70H2Q0fY8JXh1aFPIRyOBgu8")
+	bm.Set("openid", openId)
 
 	// 正式
 	//sign := wechat.GetParamSign("wxdaa2ab9ef87b5497", "1368139502", "GFDS8j98rewnmgl45wHTt980jg543abc", body)
