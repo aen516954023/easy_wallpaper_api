@@ -28,7 +28,7 @@ func GetNotifyOrdersPay(tradeNo string, mid int64) (EOrdersPay, error) {
 }
 
 // 生成支付订单
-func InsertOrderPayInfo(sn string, oId, mId, typeVal int, price float64) (bool, error) {
+func InsertOrderPayInfo(sn string, oId, mId, typeVal int, price float64) (int64, error) {
 	o := orm.NewOrm()
 	var data EOrdersPay
 	data.MId = mId
@@ -38,9 +38,17 @@ func InsertOrderPayInfo(sn string, oId, mId, typeVal int, price float64) (bool, 
 	data.Type = typeVal
 	data.PayStatus = 1
 	data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
-	num, err := o.Insert(&data)
-	if err == nil && num > 0 {
-		return true, err
+	insertId, err := o.Insert(&data)
+	if err == nil && insertId > 0 {
+		return insertId, err
 	}
-	return false, err
+	return 0, err
+}
+
+// 获取支付订单信息
+func GetOrdersPayInfo(id int) (EOrdersPay, error) {
+	o := orm.NewOrm()
+	var data EOrdersPay
+	err := o.QueryTable("e_orders_pay").Filter("id", id).One(&data)
+	return data, err
 }

@@ -1,67 +1,39 @@
 package controllers
 
 import (
-	"easy_wallpaper_api/models"
-	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/orm"
-	"github.com/prometheus/common/log"
-	"time"
+	"github.com/iGoogle-ink/gopay"
+	"github.com/iGoogle-ink/gopay/pkg/xlog"
+	"github.com/iGoogle-ink/gopay/wechat"
+	"net/http"
 )
 
 type Notify struct {
 	beego.Controller
 }
 
-// @Title 支付回调 4111 1111 1111 1111
-// @Description 支付回调接口
-// @Param	orders_code		query 	string	true		"支付订单号"
-// @Param	orders_status		query 	int	true		"订单状态"
+// @Title 解析notify参数、验签、返回数据到微信
+// @Description 订单支付接口
+// @Param	order_id		query 	int	true		"the order id"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
-// @router /call_back [post]
-func (this *Notify) CallbackNotify() {
-	// orders_code 订单号  orders_status订单状态
-	//$orders_status=="success" 成功状态
-	//$orders_status=="failture" 失败状态
-
-	orderCode := this.GetString("orders_code")
-	orderStatus := this.GetString("orders_status")
-	log.Info("订单信息:", orderCode, orderStatus)
-
-	if orderCode == "" && orderStatus == "" {
-		return
-	}
-
-	var status int
-	switch orderStatus {
-	case "success":
-		status = 2
-		break
-	case "failture":
-		status = 3
-		break
-	default:
-		status = 0
-	}
-
-	// 查询订单信息
-	orderInfo, err := models.GetNotifyOrdersPay(orderCode, 1)
+// @router /we_chat_pay [post]
+func (this *Notify) ParseWeChatNotifyAndVerifyWeChatSign(req *http.Request) string {
+	rsp := new(wechat.NotifyResponse)
+	// 解析参数
+	bodyMap, err := wechat.ParseNotifyToBodyMap(req)
 	if err != nil {
-		log.Error("查询支付单号信息错误:" + fmt.Sprintf("%s", err))
-		return
+		xlog.Debug("err:", err)
 	}
-	// 更新 订单状态 | 支付时间
-	o := orm.NewOrm()
-	num, errs := o.QueryTable("order_info").
-		Filter("trade_no", orderInfo.OrderSn).
-		Filter("order_status", 1).
-		Update(orm.Params{
-			"order_status": status,
-			"create_time":  time.Now().Unix(),
-		})
-	if errs != nil || num == 0 {
-		log.Error("更新支付订单失败:" + fmt.Sprintf("%s", errs))
-		return
+	xlog.Debug("bodyMap:", bodyMap)
+
+	ok, err := wechat.VerifySign(apiKey, wechat.SignType_MD5, bodyMap)
+	if err != nil {
+		xlog.Debug("err:", err)
 	}
+	xlog.Debug("微信验签是否通过:", ok)
+
+	rsp.ReturnCode = gopay.SUCCESS
+	rsp.ReturnMsg = "OK"
+	return rsp.ToXmlString()
 }

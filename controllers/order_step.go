@@ -101,18 +101,26 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 		return
 	}
 	//生成支付订单信息
-	retVal, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 1, data.DepositPrice)
-	if retValErr == nil && retVal {
-		// 请求支付接口 获取预支付单号
-
-		//再请求支付验签 并返回相关参数
+	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 1, data.DepositPrice)
+	if retValErr == nil && insertId > 0 {
+		this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
+		this.ServeJSON()
+		return
 	}
+	this.Data["json"] = ReturnError(40004, "操作失败，请稍后再试")
+	this.ServeJSON()
 }
 
 // @Title 实际报价
 // @Description 师傅现场量房，发起实际报价
-// @Param	order_id		query 	int	true		"the order id"
-// @Param	pay_type		query 	int	true		"the pay type"
+// @Param	order_id		query 	int	true		"the order id 订单id"
+// @Param	w_id		query 	int	true		"the worker id 师傅id"
+// @Param	service_type		query 	int	true		"the service_type 服务类型"
+// @Param	construction_type		query 	int	true		"the construction_type 施工类型"
+// @Param	price		query 	float64	true		"the price 报价"
+// @Param	unit		query 	int	true		"the unit类型"
+// @Param	info		query 	string	true		"the info"
+// @Param	deposit_price		query 	float	true		"the deposit_price 定金"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /actual_offer [post]
@@ -141,7 +149,7 @@ func (this *OrderStep) ActualOffer() {
 		// 如果有错误信息，证明验证没通过
 		for _, err := range valid.Errors {
 			log.Fatal(err.Key, err.Message)
-			this.Data["json"] = ReturnError(40000, err.Key+err.Message)
+			this.Data["json"] = ReturnError(40000, err.Message)
 			this.ServeJSON()
 			return
 		}

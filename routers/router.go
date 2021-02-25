@@ -45,9 +45,9 @@ func init() {
 				&controllers.OrderStep{},
 			),
 		),
-		beego.NSNamespace("/pay",
+		beego.NSNamespace("/wxpay",
 			beego.NSInclude(
-				&controllers.Pay{},
+				&controllers.WxPay{},
 			),
 		),
 		beego.NSNamespace("/notify",

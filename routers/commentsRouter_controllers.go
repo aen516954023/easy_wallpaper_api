@@ -36,12 +36,14 @@ func init() {
 
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Notify"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Notify"],
 		beego.ControllerComments{
-			Method:           "CallbackNotify",
-			Router:           "/call_back",
+			Method:           "ParseWeChatNotifyAndVerifyWeChatSign",
+			Router:           "/we_chat_pay",
 			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
+			MethodParams: param.Make(
+				param.New("req"),
+			),
+			Filters: nil,
+			Params:  nil})
 
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:OrderStep"],
 		beego.ControllerComments{
@@ -178,15 +180,6 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Pay"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Pay"],
-		beego.ControllerComments{
-			Method:           "PayOrder",
-			Router:           "/pay_order",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
 	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Test"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:Test"],
 		beego.ControllerComments{
 			Method:           "Index",
@@ -245,6 +238,15 @@ func init() {
 		beego.ControllerComments{
 			Method:           "OrderTaking",
 			Router:           "/order_taking",
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["easy_wallpaper_api/controllers:WxPay"] = append(beego.GlobalControllerRouter["easy_wallpaper_api/controllers:WxPay"],
+		beego.ControllerComments{
+			Method:           "PayOrder",
+			Router:           "/pay_order",
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,

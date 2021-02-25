@@ -4,6 +4,7 @@ import (
 	"easy_wallpaper_api/models"
 	"easy_wallpaper_api/util"
 	"github.com/astaxie/beego"
+	"strings"
 )
 
 type Base struct {
@@ -37,4 +38,9 @@ func (Base *Base) Auth() {
 		}
 	}
 	Base.Data["user"] = Base.CurrentLoginUser
+}
+
+func (this *Base) getClientIp() string {
+	s := strings.Split(this.Ctx.Request.RemoteAddr, ":")
+	return s[0]
 }
