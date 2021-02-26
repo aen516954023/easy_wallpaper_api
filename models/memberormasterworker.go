@@ -35,12 +35,22 @@ func GetOrderTasking(oId, wId int) bool {
 	return false
 }
 
+//查询师傅是否参与订单 uid查询
+func GetOrderTaskingUid(oId, uid int) bool {
+	o := orm.NewOrm()
+	num, err := o.QueryTable("e_member_or_master_worker").Filter("o_id", oId).Filter("m_id", uid).Count()
+	if err == nil && num > 0 {
+		return true
+	}
+	return false
+}
+
 // 师傅接单表写入数据
-func InsertOrderTaking(oid, wid int) (bool, error) {
+func InsertOrderTaking(oid, mId, wid int) (bool, error) {
 	o := orm.NewOrm()
 	var data EMemberOrMasterWorker
 	data.OId = oid
-	data.MId = 0
+	data.MId = mId
 	data.WId = wid
 	data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	insertId, err := o.Insert(&data)

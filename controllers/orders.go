@@ -39,7 +39,7 @@ func (this *Orders) Index() {
 }
 
 // @Title 订单详情页
-// @Description 订单详情页接口数据
+// @Description 用户订单详情页接口数据
 // @Param	token		header 	string	true		"the token"
 // @Param	order_id		query 	int 	true		"the orders id"
 // @Success 200 {string} auth success
@@ -280,7 +280,35 @@ func (this *Orders) GetMasterOrdersInfo() {
 	}
 	data, err := models.GetOrderInfo(oId)
 	if err == nil {
-		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+		returnValue := make(map[string]interface{})
+		// 订单详情数据
+		serviceType, _ := models.GetServiceType(int64(data.ServiceId))
+		returnValue["service_type"] = serviceType.TypeName
+		returnValue["address"] = data.Address
+		returnValue["area"] = data.Area
+		returnValue["create_at"] = data.CreateAt
+		if data.ConstructionTime == 0 {
+			returnValue["construction_time"] = "--"
+		} else {
+			returnValue["construction_time"] = data.ConstructionTime
+		}
+		returnValue["basement_membrane"] = data.BasementMembrane
+		returnValue["is_masteriel"] = data.IsMateriel
+		returnValue["is_tear_of_old_wallpaper"] = data.IsTearOfOldWallpaper
+		returnValue["desc"] = data.MoreDescription
+		returnValue["images"] = data.Images
+
+		// 查询师傅是否已经参与
+		if models.GetOrderTaskingUid(oId, int(this.CurrentLoginUser.Id)) {
+			returnValue["isJoin"] = 1
+			// 获取电话号码
+			returnValue["phone"] = this.CurrentLoginUser.Phone
+		} else {
+			returnValue["isJoin"] = 0
+			returnValue["phone"] = ""
+		}
+
+		this.Data["json"] = ReturnSuccess(0, "success", returnValue, 1)
 		this.ServeJSON()
 		return
 	}
@@ -326,7 +354,7 @@ func (this *Orders) ParticipateOffer() {
 		}
 	}
 
-	boolVal, err := models.InsertOrderTaking(orderId, wId)
+	boolVal, err := models.InsertOrderTaking(orderId, int(this.CurrentLoginUser.Id), wId)
 	if boolVal {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
 		this.ServeJSON()

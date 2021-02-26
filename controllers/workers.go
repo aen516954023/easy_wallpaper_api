@@ -119,13 +119,13 @@ func (this *Workers) OrderTaking() {
 		this.ServeJSON()
 		return
 	}
-	mId, _ := this.GetInt("m_id")
-	if mId == 0 {
-		this.Data["jsong"] = ReturnError(40001, "会员参数错误或不能为空")
+	wId, _ := this.GetInt("w_id")
+	if wId == 0 {
+		this.Data["jsong"] = ReturnError(40001, "师傅id参数错误或不能为空")
 		this.ServeJSON()
 		return
 	}
-	boolVal, _ := models.InsertOrderTaking(oId, mId)
+	boolVal, _ := models.InsertOrderTaking(oId, int(this.CurrentLoginUser.Id), wId)
 	if boolVal {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
 		this.ServeJSON()
