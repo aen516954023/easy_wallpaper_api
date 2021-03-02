@@ -103,34 +103,3 @@ func (this *Workers) Apply() {
 	this.Data["json"] = ReturnError(40002, "提交审核失败,请稍后再试")
 	this.ServeJSON()
 }
-
-// @Title 师傅接单
-// @Description 师傅接单接口
-// @Param	token		header 	string	true		"the token"
-// @Param	order_id		query 	int	true		"the order id"
-// @Param	m_id		query 	int	true		"the member id"
-// @Success 200 {string} auth success
-// @Failure 403 user not exist
-// @router /order_taking [post]
-func (this *Workers) OrderTaking() {
-	oId, _ := this.GetInt("order_id")
-	if oId == 0 {
-		this.Data["jsong"] = ReturnError(40001, "订单参数错误或不能为空")
-		this.ServeJSON()
-		return
-	}
-	wId, _ := this.GetInt("w_id")
-	if wId == 0 {
-		this.Data["jsong"] = ReturnError(40001, "师傅id参数错误或不能为空")
-		this.ServeJSON()
-		return
-	}
-	boolVal, _ := models.InsertOrderTaking(oId, int(this.CurrentLoginUser.Id), wId)
-	if boolVal {
-		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
-		this.ServeJSON()
-		return
-	}
-	this.Data["jsong"] = ReturnError(40004, "接单失败，请稍后再试")
-	this.ServeJSON()
-}

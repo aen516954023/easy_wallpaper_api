@@ -8,6 +8,7 @@ type EOrders struct {
 	WorkerId             int
 	Address              string
 	ConstructionTime     int
+	ConstructionType     int
 	ServiceId            int
 	IsMateriel           int
 	Area                 float64

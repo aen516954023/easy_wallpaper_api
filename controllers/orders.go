@@ -59,9 +59,10 @@ func (this *Orders) OrderDetails() {
 		num, list, listErr := models.GetOrderWorkerList(data.Id)
 		if listErr == nil && num > 0 {
 			ValueData["master_worker_list"] = list
+			ValueData["master_worker_list_num"] = num
 		} else {
 			ValueData["master_worker_list"] = nil
-			ValueData["master_worker_list_num"] = num
+			ValueData["master_worker_list_num"] = 0
 		}
 		//获取订单详情信息
 		ValueData["info"] = data
@@ -283,6 +284,7 @@ func (this *Orders) GetMasterOrdersInfo() {
 		returnValue := make(map[string]interface{})
 		// 订单详情数据
 		serviceType, _ := models.GetServiceType(int64(data.ServiceId))
+		returnValue["id"] = data.Id
 		returnValue["service_type"] = serviceType.TypeName
 		returnValue["address"] = data.Address
 		returnValue["area"] = data.Area
@@ -307,7 +309,13 @@ func (this *Orders) GetMasterOrdersInfo() {
 			returnValue["isJoin"] = 0
 			returnValue["phone"] = ""
 		}
-
+		//通过uid查询师傅id
+		masterInfo, mErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+		if mErr == nil {
+			returnValue["w_id"] = masterInfo.Id
+		} else {
+			returnValue["w_id"] = 0
+		}
 		this.Data["json"] = ReturnSuccess(0, "success", returnValue, 1)
 		this.ServeJSON()
 		return
@@ -363,4 +371,50 @@ func (this *Orders) ParticipateOffer() {
 	logs.Error("师傅参与错误:" + fmt.Sprintf("%v", err))
 	this.Data["json"] = ReturnError(40002, "参与失败，请稍后再试")
 	this.ServeJSON()
+}
+
+// @Title 订单管理
+// @Description 订单管理页面数据--师傅端
+// @Param	order_id		query 	int	true		"the order id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /order_manage_master [post]
+func (this *Orders) OrderManageMaster() {
+	orderId, _ := this.GetInt("order_id")
+	if orderId == 0 {
+		this.Data["json"] = ReturnError(40001, "参数错误，缺少订单id")
+		this.ServeJSON()
+		return
+	}
+	num, data, err := models.GetOrderOfStepAll(orderId, int(this.CurrentLoginUser.Id))
+	if err == nil && num > 0 {
+		this.Data["json"] = ReturnSuccess(0, "success", data, num)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40001, "暂无记录")
+		this.ServeJSON()
+	}
+}
+
+// @Title 订单管理
+// @Description 订单管理页面数据--客户端
+// @Param	order_id		query 	int	true		"the order id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /order_manage_user [post]
+func (this *Orders) OrderManageUser() {
+	orderId, _ := this.GetInt("order_id")
+	if orderId == 0 {
+		this.Data["json"] = ReturnError(40001, "参数错误，缺少订单id")
+		this.ServeJSON()
+		return
+	}
+	num, data, err := models.GetOrderOfStepAll(orderId, int(this.CurrentLoginUser.Id))
+	if err == nil && num > 0 {
+		this.Data["json"] = ReturnSuccess(0, "success", data, num)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40001, "暂无记录")
+		this.ServeJSON()
+	}
 }

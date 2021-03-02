@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"easy_wallpaper_api/models"
+	"fmt"
 	"github.com/beego/beego/v2/core/validation"
 	"log"
 )
@@ -19,8 +20,7 @@ type OrderStep struct {
 // @Param	w_id		query 	int	true		"the worker id"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
-// @router /advance_order [post]
-//
+// @router /confirm_master_worker [post]
 func (this *OrderStep) ConfirmMasterWorker() {
 	// order_step 表新增选择的师傅记录
 	// 更新师傅参与表中其它参与的师傅的状态
@@ -47,7 +47,6 @@ func (this *OrderStep) AdvanceOrder() {
 	// 接收参数
 	orderId, _ := this.GetInt("order_id")
 	mId := int(this.CurrentLoginUser.Id)
-	wId, _ := this.GetInt("w_id")
 	serviceType, _ := this.GetInt("service_type")
 	constructionType, _ := this.GetInt("construction_type")
 	price, _ := this.GetFloat("price")
@@ -55,9 +54,9 @@ func (this *OrderStep) AdvanceOrder() {
 	info := this.GetString("info")
 	depositPrice, _ := this.GetFloat("deposit_price")
 	// 参数效验 Todo
+	fmt.Println(orderId)
 	valid := validation.Validation{}
 	valid.Required(orderId, "order_id")
-	valid.Required(wId, "w_id")
 	valid.Required(serviceType, "serviceType")
 	valid.Required(constructionType, "constructionType")
 	valid.Required(price, "price")
@@ -67,21 +66,29 @@ func (this *OrderStep) AdvanceOrder() {
 	if valid.HasErrors() {
 		// 如果有错误信息，证明验证没通过
 		for _, err := range valid.Errors {
-			log.Fatal(err.Key, err.Message)
+			//log.Fatal(err.Key, err.Message)
 			this.Data["json"] = ReturnError(40000, err.Key+err.Message)
 			this.ServeJSON()
 			return
 		}
 	}
-	// 新增订单步骤 并更新订单表对应的相关信息
-	if models.InsertOrdersStepTwo(orderId, mId, wId, serviceType, constructionType, unit, price, depositPrice, info) {
-		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
-		this.ServeJSON()
+	//查询当前用户的师傅id
+	workerInfo, workerInfoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+	if workerInfoErr == nil && workerInfo.Id > 0 {
+		// 新增订单步骤 并更新订单表对应的相关信息
+		if models.InsertOrdersStepTwo(orderId, mId, workerInfo.Id, serviceType, constructionType, unit, price, depositPrice, info) {
+			this.Data["json"] = ReturnSuccess(0, "success", "", 0)
+			this.ServeJSON()
+			return
+		} else {
+			this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+			this.ServeJSON()
+			return
+		}
 	} else {
-		this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+		this.Data["json"] = ReturnError(40004, "操作失败，师傅信息不存在")
 		this.ServeJSON()
 	}
-
 }
 
 // @Title 确认基础报价
@@ -100,6 +107,7 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 		return
 	}
 	//生成支付订单信息
+	// 添加订单步骤 状态为2 Todo
 	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 1, data.DepositPrice)
 	if retValErr == nil && insertId > 0 {
 		this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)

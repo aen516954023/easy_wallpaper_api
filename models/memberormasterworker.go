@@ -71,6 +71,6 @@ type OrderWorkerList struct {
 func GetOrderWorkerList(orderId int) (int64, []OrderWorkerList, error) {
 	o := orm.NewOrm()
 	var data []OrderWorkerList
-	num, err := o.Raw("SELECT * FROM e_member_of_master_worker w LEFT JOIN e_master_worker m ON m.id=w.w_id").QueryRows(&data)
+	num, err := o.Raw("SELECT w.w_id as id,m.username as name,m.image FROM e_member_or_master_worker w LEFT JOIN e_master_worker m ON m.id=w.w_id WHERE w.o_id=?", orderId).QueryRows(&data)
 	return num, data, err
 }

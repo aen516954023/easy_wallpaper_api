@@ -1,16 +1,17 @@
 package models
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"time"
 )
 
 func init() {
-	orm.RegisterModel(new(EOrderStep))
+	orm.RegisterModel(new(EOrdersStep))
 }
 
-type EOrderStep struct {
+type EOrdersStep struct {
 	Id               int
 	OId              int
 	MId              int
@@ -29,7 +30,7 @@ type EOrderStep struct {
 //添加参与记录,并更新选中的师傅状态
 func InsertOrdersStep(oId, mId, wId int) bool {
 	o := orm.NewOrm()
-	var data EOrderStep
+	var data EOrdersStep
 	beginErr := o.Begin()
 	if beginErr != nil {
 		logs.Error("start the transaction failed")
@@ -45,6 +46,8 @@ func InsertOrdersStep(oId, mId, wId int) bool {
 		num, upErr := o.QueryTable("e_member_or_master_worker").Filter("o_id", oId).Filter("w_id", wId).Update(orm.Params{
 			"status": 1,
 		})
+		fmt.Println(err, upErr, num)
+
 		if upErr == nil && num > 0 {
 			comErr := o.Commit()
 			if comErr != nil {
@@ -71,7 +74,7 @@ func InsertOrdersStep(oId, mId, wId int) bool {
 //基础报价
 func InsertOrdersStepTwo(oId, mId, wId, sType, cType, unit int, price, dPrice float64, info string) bool {
 	o := orm.NewOrm()
-	var data EOrderStep
+	var data EOrdersStep
 	beginErr := o.Begin()
 	if beginErr != nil {
 		logs.Error("start the transaction failed")
@@ -91,11 +94,12 @@ func InsertOrdersStepTwo(oId, mId, wId, sType, cType, unit int, price, dPrice fl
 	InsertId, err := o.Insert(&data)
 	if err == nil && InsertId > 0 {
 		// 更新订单相关字段信息
-		num, upErr := o.QueryTable("e_orders").Filter("o_id", oId).Update(orm.Params{
+		num, upErr := o.QueryTable("e_orders").Filter("id", oId).Update(orm.Params{
 			"service_id":        sType,
 			"construction_type": cType,
 			"status":            2,
 		})
+		fmt.Println("upErr", upErr)
 		if upErr == nil && num > 0 {
 			comErr := o.Commit()
 			if comErr != nil {
@@ -120,9 +124,9 @@ func InsertOrdersStepTwo(oId, mId, wId, sType, cType, unit int, price, dPrice fl
 }
 
 // 查询订单及基础报价信息
-func GetOrderOfStepInfo(orderId, status int) (EOrderStep, error) {
+func GetOrderOfStepInfo(orderId, status int) (EOrdersStep, error) {
 	o := orm.NewOrm()
-	var data EOrderStep
+	var data EOrdersStep
 	err := o.QueryTable("e_orders_step").Filter("o_id", orderId).Filter("status", status).One(&data)
 	//err := o.Raw("SELECT * FROM e_orders_step  WHERE o_id=? AND status=?",orderId,status).QueryRow(&data)
 	return data, err
@@ -131,7 +135,7 @@ func GetOrderOfStepInfo(orderId, status int) (EOrderStep, error) {
 //实际报价
 func InsertOrdersStepThree(oId, mId, wId, sType, cType, unit int, price, dPrice float64, info string) bool {
 	o := orm.NewOrm()
-	var data EOrderStep
+	var data EOrdersStep
 	data.MId = mId
 	data.OId = oId
 	data.WId = wId
@@ -160,4 +164,11 @@ func ModifyStepStatus(oId, mId, status int) bool {
 		return true
 	}
 	return false
+}
+
+func GetOrderOfStepAll(orderId, mId int) (int64, []EOrdersStep, error) {
+	o := orm.NewOrm()
+	var data []EOrdersStep
+	num, err := o.QueryTable("e_orders_step").Filter("o_id", orderId).Filter("m_id", mId).OrderBy("-create_at").All(&data)
+	return num, data, err
 }
