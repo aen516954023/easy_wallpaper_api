@@ -24,6 +24,8 @@ type EOrdersStep struct {
 	TotalPrice       float64
 	Info             string
 	Status           int
+	PayStatus        int
+	PayId            int
 	CreateAt         string
 }
 
@@ -171,4 +173,18 @@ func GetOrderOfStepAll(orderId, mId int) (int64, []EOrdersStep, error) {
 	var data []EOrdersStep
 	num, err := o.QueryTable("e_orders_step").Filter("o_id", orderId).Filter("m_id", mId).OrderBy("-create_at").All(&data)
 	return num, data, err
+}
+
+// 更新订单步骤支付状态
+func UpdateOrderStepPayStatus(orderId int, mId int64, status, payStatue int, insertId int64) (bool, error) {
+	o := orm.NewOrm()
+	num, err := o.QueryTable("e_orders_step").Filter("o_id", orderId).
+		Filter("m_id", mId).Filter("status", status).Update(orm.Params{
+		"pay_status": payStatue,
+		"pay_id":     insertId,
+	})
+	if err == nil && num > 0 {
+		return true, err
+	}
+	return false, err
 }

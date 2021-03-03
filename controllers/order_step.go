@@ -106,11 +106,24 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 		this.ServeJSON()
 		return
 	}
-	//生成支付订单信息
-	// 添加订单步骤 状态为2 Todo
+	//判断订单是否存在
+	count, _ := models.GetOrderPayEmpty(oId, int(this.CurrentLoginUser.Id), 1)
+	if count > 0 {
+		this.Data["json"] = ReturnError(40001, "请务重复确认基础订单")
+		this.ServeJSON()
+		return
+	}
+	//生成支付订单信息  如果支付成功 在回调方法中添加一条订单步骤 状态为2
 	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 1, data.DepositPrice)
 	if retValErr == nil && insertId > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
+		// 更新当前步骤支付状态与支付订单id
+		boolVal, _ := models.UpdateOrderStepPayStatus(oId, this.CurrentLoginUser.Id, 1, 1, insertId)
+		if boolVal {
+			this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
+			this.ServeJSON()
+			return
+		}
+		this.Data["json"] = ReturnError(40003, "订单已确认，未支付")
 		this.ServeJSON()
 		return
 	}

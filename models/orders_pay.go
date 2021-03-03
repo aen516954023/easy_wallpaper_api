@@ -52,3 +52,10 @@ func GetOrdersPayInfo(id int) (EOrdersPay, error) {
 	err := o.QueryTable("e_orders_pay").Filter("id", id).One(&data)
 	return data, err
 }
+
+// 查询订单是否存在
+func GetOrderPayEmpty(oId, mId, status int) (int64, error) {
+	o := orm.NewOrm()
+	num, err := o.QueryTable("e_orders_pay").Filter("o_id", oId).Filter("m_id", mId).Filter("pay_status", status).Count()
+	return num, err
+}
