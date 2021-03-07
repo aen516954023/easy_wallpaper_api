@@ -34,7 +34,7 @@ func main() {
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", defaultdb)
 
-	orm.Debug = true
+	//orm.Debug = true
 	// logs 日志配置
 	logs.SetLogger(logs.AdapterFile, `{"filename":"project.log","level":7,"maxlines":0,"maxsize":0,"daily":true,"maxdays":10,"color":true}`)
 
