@@ -18,6 +18,7 @@ type EOrdersStep struct {
 	WId              int
 	ServiceType      int
 	ConstructionType int
+	Area             float64
 	Unit             int
 	Price            float64
 	DepositPrice     float64

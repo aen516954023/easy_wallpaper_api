@@ -53,6 +53,14 @@ func GetOrdersPayInfo(id int) (EOrdersPay, error) {
 	return data, err
 }
 
+// 获取支付订单信息
+func GetOrdersPaySnInfo(sn string) (EOrdersPay, error) {
+	o := orm.NewOrm()
+	var data EOrdersPay
+	err := o.QueryTable("e_orders_pay").Filter("order_sn", sn).One(&data)
+	return data, err
+}
+
 // 查询订单是否存在
 func GetOrderPayEmpty(oId, mId, status int) (int64, error) {
 	o := orm.NewOrm()

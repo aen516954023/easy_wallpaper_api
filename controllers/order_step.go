@@ -258,3 +258,46 @@ func (this *OrderStep) ConfirmAcceptance() {
 	this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
 	this.ServeJSON()
 }
+
+// @Title 支付页接口
+// @Description 支付页接口数据
+// @Param	order_id		query 	int	true		"the order id"
+// @Param	pay_id		query 	int	true		"the pay id"
+// @Param	flag		query 	int	true		"the flag 0|1"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /get_pay_info [post]
+func (this *OrderStep) GetPayInfo() {
+	oId, _ := this.GetInt("order_id")
+	pId, _ := this.GetInt("pay_id")
+	flag, _ := this.GetInt("flag")
+	if oId == 0 || pId == 0 {
+		this.Data["json"] = ReturnError(40001, "参数错误")
+		this.ServeJSON()
+		return
+	}
+
+	data := make(map[string]interface{})
+	payData, payErr := models.GetOrdersPayInfo(pId)
+	if payErr == nil && payData.Id > 0 {
+		data["order_sn"] = payData.OrderSn
+		data["total_price"] = payData.TotalPrice
+	}
+	status := 1
+	if flag > 0 {
+		status = 3
+	}
+	orderData, orderErr := models.GetOrderOfStepInfo(oId, status)
+	if orderErr == nil && orderData.Id > 0 {
+		data["service_type"] = orderData.ServiceType
+		data["construction_type"] = orderData.ConstructionType
+		data["area"] = orderData.Area
+		data["price"] = orderData.Price
+		data["deposit_price"] = orderData.DepositPrice
+		data["unit"] = orderData.Unit
+		data["address"] = orderData.OId
+	}
+
+	this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+	this.ServeJSON()
+}
