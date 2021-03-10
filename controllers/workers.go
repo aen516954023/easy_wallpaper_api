@@ -103,3 +103,36 @@ func (this *Workers) Apply() {
 	this.Data["json"] = ReturnError(40002, "提交审核失败,请稍后再试")
 	this.ServeJSON()
 }
+
+// @Title 师傅订单管理
+// @Description 订单管理数据接口
+// @Param	token		header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /order_list [post]
+func (this *Workers) OrderList() {
+
+	num, data, err := models.GetOrderMasterAll(this.CurrentLoginUser.Id)
+	if err == nil && num > 0 {
+		returnVal := make([]map[string]interface{}, num)
+		for k := 0; k < len(returnVal); k++ {
+			// 一定要加下面的nil判断  否则会报错 Handler crashed with error assignment to entry in nil map  map未赋值
+			if returnVal[k] == nil {
+				returnVal[k] = map[string]interface{}{}
+			}
+			returnVal[k]["Id"] = data[k].Id
+			serviceTypeObj, _ := models.GetServiceType(int64(data[k].ServiceId))
+			returnVal[k]["ServiceType"] = serviceTypeObj.TypeName
+			var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
+			returnVal[k]["ConstructionType"] = constructionData[data[k].ConstructionType]
+			returnVal[k]["Area"] = data[k].Area
+			returnVal[k]["ConstructionTime"] = data[k].ConstructionTime
+			returnVal[k]["CreateAt"] = data[k].CreateAt
+		}
+		this.Data["json"] = ReturnSuccess(0, "success", returnVal, num)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40000, "没有相关记录")
+		this.ServeJSON()
+	}
+}
