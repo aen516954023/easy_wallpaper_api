@@ -4,12 +4,14 @@ import "github.com/astaxie/beego/orm"
 
 type EOrders struct {
 	Id                   int
+	OrderSn              string
 	MId                  int
 	WorkerId             int
 	Address              string
+	CityId               int
 	ConstructionTime     int
-	ConstructionType     int
 	ServiceId            int
+	ConstructionType     int
 	IsMateriel           int
 	Area                 float64
 	IsTearOfOldWallpaper int

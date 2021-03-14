@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/beego/beego/v2/core/validation"
 	"log"
+	"strings"
 )
 
 /**
@@ -46,13 +47,13 @@ func (this *OrderStep) ConfirmMasterWorker() {
 func (this *OrderStep) AdvanceOrder() {
 	// 接收参数
 	orderId, _ := this.GetInt("order_id")
-	mId := int(this.CurrentLoginUser.Id)
 	serviceType, _ := this.GetInt("service_type")
 	constructionType, _ := this.GetInt("construction_type")
 	price, _ := this.GetFloat("price")
 	unit, _ := this.GetInt("unit")
 	info := this.GetString("info")
 	depositPrice, _ := this.GetFloat("deposit_price")
+	hTime := this.GetString("h_time") //上门时间
 	// 参数效验 Todo
 	fmt.Println(orderId)
 	valid := validation.Validation{}
@@ -75,8 +76,10 @@ func (this *OrderStep) AdvanceOrder() {
 	//查询当前用户的师傅id
 	workerInfo, workerInfoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
 	if workerInfoErr == nil && workerInfo.Id > 0 {
-		// 新增订单步骤 并更新订单表对应的相关信息
-		if models.InsertOrdersStepTwo(orderId, mId, workerInfo.Id, serviceType, constructionType, unit, price, depositPrice, info) {
+		//处理上门时间格式
+		hTime = strings.Replace(hTime, "/", "-", -1)
+		// 更新订单步骤 并更新订单表对应的相关信息
+		if models.ModifyOrdersStepTwo(orderId, workerInfo.Id, serviceType, constructionType, unit, price, depositPrice, info, strToUnixTime(hTime)) {
 			this.Data["json"] = ReturnSuccess(0, "success", "", 0)
 			this.ServeJSON()
 			return
@@ -100,24 +103,24 @@ func (this *OrderStep) AdvanceOrder() {
 func (this *OrderStep) ConfirmAdvanceOrder() {
 	oId, _ := this.GetInt("order_id")
 	//通过订单id 查询订单信息,与基础报价信息
-	data, err := models.GetOrderOfStepInfo(oId, 1)
+	data, err := models.GetOrderOfStepInfo(oId)
 	if err != nil {
 		this.Data["json"] = ReturnError(40000, "订单信息不存在")
 		this.ServeJSON()
 		return
 	}
-	//判断订单是否存在
+	//判断支付订单是否存在
 	count, _ := models.GetOrderPayEmpty(oId, int(this.CurrentLoginUser.Id), 1)
 	if count > 0 {
 		this.Data["json"] = ReturnError(40001, "请务重复确认基础订单")
 		this.ServeJSON()
 		return
 	}
-	//生成支付订单信息  如果支付成功 在回调方法中添加一条订单步骤 状态为2
+	//生成支付订单信息  如果支付成功 在回调方法中更新步骤订单支付状态 deposit_status deposit_id
 	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 1, data.DepositPrice)
 	if retValErr == nil && insertId > 0 {
-		// 更新当前步骤支付状态与支付订单id
-		boolVal, _ := models.UpdateOrderStepPayStatus(oId, this.CurrentLoginUser.Id, 1, 1, insertId)
+		// 更新步骤状态 -- 用户确认基础报价字段
+		boolVal, _ := models.UpdateOrderStep2(oId, this.CurrentLoginUser.Id, insertId)
 		if boolVal {
 			this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
 			this.ServeJSON()
@@ -131,7 +134,36 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 	this.ServeJSON()
 }
 
-// @Title 实际报价
+// @Title 师傅确认到达现场
+// @Description 师傅确认到达现场
+// @Param	order_id		query 	int	true		"the order id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /confirm_advance_order [post]
+func (this *OrderStep) ConfirmArrivals() {
+	orderId, _ := this.GetInt("order_id")
+	if orderId == 0 {
+		this.Data["json"] = ReturnError(40001, "缺少参数")
+		this.ServeJSON()
+		return
+	}
+	master, _ := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+	if master.Id == 0 {
+		this.Data["json"] = ReturnError(40001, "未查询到师傅信息")
+		this.ServeJSON()
+		return
+	}
+	boolVal, boolErr := models.ModifyStep3Status(orderId, master.Id)
+	if boolErr == nil && boolVal {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40003, "操作失败,请稍后再试")
+	this.ServeJSON()
+}
+
+// @Title 实际报价 Todo
 // @Description 师傅现场量房，发起实际报价
 // @Param	order_id		query 	int	true		"the order id 订单id"
 // @Param	w_id		query 	int	true		"the worker id 师傅id"
@@ -147,14 +179,15 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 func (this *OrderStep) ActualOffer() {
 	// 接收参数
 	orderId, _ := this.GetInt("order_id")
-	mId := int(this.CurrentLoginUser.Id)
 	wId, _ := this.GetInt("w_id")
 	serviceType, _ := this.GetInt("service_type")
 	constructionType, _ := this.GetInt("construction_type")
 	price, _ := this.GetFloat("price")
 	unit, _ := this.GetInt("unit")
+	area, _ := this.GetFloat("area")
+	discountedPrice, _ := this.GetFloat("discounted_price")
+	totalPrice, _ := this.GetFloat("total_price")
 	info := this.GetString("info")
-	depositPrice, _ := this.GetFloat("deposit_price")
 	// 参数效验 Todo
 	valid := validation.Validation{}
 	valid.Required(orderId, "order_id")
@@ -162,8 +195,10 @@ func (this *OrderStep) ActualOffer() {
 	valid.Required(serviceType, "serviceType")
 	valid.Required(constructionType, "constructionType")
 	valid.Required(price, "price")
+	valid.Required(area, "area")
+	valid.Required(discountedPrice, "discountedPrice")
 	valid.Required(info, "info")
-	valid.Required(depositPrice, "depositPrice")
+	valid.Required(totalPrice, "total_price")
 
 	if valid.HasErrors() {
 		// 如果有错误信息，证明验证没通过
@@ -174,8 +209,8 @@ func (this *OrderStep) ActualOffer() {
 			return
 		}
 	}
-	// 新增订单步骤 并更新订单表对应的相关信息
-	if models.InsertOrdersStepThree(orderId, mId, wId, serviceType, constructionType, unit, price, depositPrice, info) {
+	// 更新订单步骤 并更新订单表对应的相关信息
+	if models.ModifyOrdersStepActualQuotation(orderId, wId, serviceType, constructionType, unit, area, price, discountedPrice, totalPrice, info) {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
 		this.ServeJSON()
 	} else {
@@ -194,16 +229,25 @@ func (this *OrderStep) ConfirmActualOffer() {
 
 	oId, _ := this.GetInt("order_id")
 	//通过订单id 查询订单信息,实际报价信息
-	data, err := models.GetOrderOfStepInfo(oId, 2)
+	data, err := models.GetOrderOfStepInfo(oId)
 	if err != nil {
 		this.Data["json"] = ReturnError(40000, "订单信息不存在")
 		this.ServeJSON()
 		return
 	}
+	//计算订单支付金额
+	money := data.TotalPrice - data.DiscountedPrice
 	//生成支付订单信息
-	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 2, data.TotalPrice)
+	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 2, money)
 	if retValErr == nil && insertId > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
+		// 更新步骤状态 -- 用户确认实际报价字段
+		boolVal, _ := models.UpdateOrderStep5(oId, this.CurrentLoginUser.Id, insertId)
+		if boolVal {
+			this.Data["json"] = ReturnSuccess(0, "success", insertId, 1)
+			this.ServeJSON()
+			return
+		}
+		this.Data["json"] = ReturnError(40003, "订单已确认，未支付")
 		this.ServeJSON()
 		return
 	}
@@ -220,17 +264,21 @@ func (this *OrderStep) ConfirmActualOffer() {
 func (this *OrderStep) Acceptance() {
 	oId, _ := this.GetInt("order_id")
 	//通过订单id 查询订单信息,实际报价信息
-	data, err := models.GetOrderOfStepInfo(oId, 4)
+	data, err := models.GetOrderOfStepInfo(oId)
 	if err != nil {
 		this.Data["json"] = ReturnError(40000, "订单信息不存在")
 		this.ServeJSON()
 		return
 	}
-	if models.ModifyStepStatus(data.OId, int(this.CurrentLoginUser.Id), 5) {
-		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
-		this.ServeJSON()
-		return
+	masterInfo, infoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+	if infoErr == nil && masterInfo.Id > 0 {
+		if models.ModifyStepStatus(data.OId, masterInfo.Id) {
+			this.Data["json"] = ReturnSuccess(0, "success", "", 1)
+			this.ServeJSON()
+			return
+		}
 	}
+
 	this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
 	this.ServeJSON()
 }
@@ -244,13 +292,13 @@ func (this *OrderStep) Acceptance() {
 func (this *OrderStep) ConfirmAcceptance() {
 	oId, _ := this.GetInt("order_id")
 	//通过订单id 查询订单信息,实际报价信息
-	data, err := models.GetOrderOfStepInfo(oId, 5)
+	data, err := models.GetOrderOfStepInfo(oId)
 	if err != nil {
 		this.Data["json"] = ReturnError(40000, "订单信息不存在")
 		this.ServeJSON()
 		return
 	}
-	if models.ModifyStepStatus(data.OId, int(this.CurrentLoginUser.Id), 6) {
+	if models.ModifyConfirmAcceptance(data.OId, int(this.CurrentLoginUser.Id)) {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
 		this.ServeJSON()
 		return
@@ -263,31 +311,20 @@ func (this *OrderStep) ConfirmAcceptance() {
 // @Description 支付页接口数据
 // @Param	order_id		query 	int	true		"the order id"
 // @Param	pay_id		query 	int	true		"the pay id"
-// @Param	flag		query 	int	true		"the flag 0|1"
+// @Param	pay_type		query 	int	true		"the pay type 1|2"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /get_pay_info [post]
 func (this *OrderStep) GetPayInfo() {
 	oId, _ := this.GetInt("order_id")
-	pId, _ := this.GetInt("pay_id")
-	flag, _ := this.GetInt("flag")
-	if oId == 0 || pId == 0 {
+	if oId == 0 {
 		this.Data["json"] = ReturnError(40001, "参数错误")
 		this.ServeJSON()
 		return
 	}
 
 	data := make(map[string]interface{})
-	payData, payErr := models.GetOrdersPayInfo(pId)
-	if payErr == nil && payData.Id > 0 {
-		data["order_sn"] = payData.OrderSn
-		data["total_price"] = payData.TotalPrice
-	}
-	status := 1
-	if flag > 0 {
-		status = 3
-	}
-	orderData, orderErr := models.GetOrderOfStepInfo(oId, status)
+	orderData, orderErr := models.GetOrderOfStepInfo(oId)
 	if orderErr == nil && orderData.Id > 0 {
 		data["service_type"] = orderData.ServiceType
 		data["construction_type"] = orderData.ConstructionType
@@ -296,6 +333,27 @@ func (this *OrderStep) GetPayInfo() {
 		data["deposit_price"] = orderData.DepositPrice
 		data["unit"] = orderData.Unit
 		data["address"] = orderData.OId
+	} else {
+		this.Data["json"] = ReturnError(40003, "订单信息未找到")
+		this.ServeJSON()
+		return
+	}
+	payType, _ := this.GetInt("pay_type")
+	tempId := 0
+	if payType == 1 {
+		tempId = orderData.DepositId
+	} else if payType == 2 {
+		tempId = orderData.PayId
+	} else {
+		this.Data["json"] = ReturnError(40001, "支付参数错误")
+		this.ServeJSON()
+		return
+	}
+
+	payData, payErr := models.GetOrdersPayInfo(tempId)
+	if payErr == nil && payData.Id > 0 {
+		data["order_sn"] = payData.OrderSn
+		data["total_price"] = payData.TotalPrice
 	}
 
 	this.Data["json"] = ReturnSuccess(0, "success", data, 1)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+	"strings"
 	"time"
 )
 
@@ -84,8 +85,8 @@ func (this *Orders) OrderPages() {
 	//typeId,_ := h.GetInt("type_id")
 
 	// 获取用户信息
-	data["user_name"] = this.CurrentLoginUser.Nickname
-	data["phone"] = this.CurrentLoginUser.Phone
+	//data["user_name"] = this.CurrentLoginUser.Nickname
+	//data["phone"] = this.CurrentLoginUser.Phone
 	// 服务类型，
 	var typesData []string
 	_, typesAll, err := models.GetAllServiceType()
@@ -95,12 +96,6 @@ func (this *Orders) OrderPages() {
 		}
 		data["types"] = typesData
 	}
-	// 施工类型 Construction type
-	//var constructionData []string
-	//var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
-	//constructionData[0] = "主料+辅料+施工"
-	//constructionData[1] = "仅施工"
-	//constructionData[2] = "辅料+施工"
 	data["construction"] = constructionData
 
 	this.Data["json"] = ReturnSuccess(40000, "success", data, 1)
@@ -134,8 +129,7 @@ func (this *Orders) SaveOrder() {
 	images := this.GetString("images")                         // 图片
 
 	// 用户参数
-	userId := this.CurrentLoginUser.Id // 当前用户id
-	//phone := "15938755991"
+	userId := this.CurrentLoginUser.Id                    // 当前用户id
 	orderType, orderTypesErr := this.GetInt("order_type") // 订单类型
 	if orderTypesErr == nil && orderType == 2 {
 		orderType = 2
@@ -172,26 +166,29 @@ func (this *Orders) SaveOrder() {
 		this.ServeJSON()
 		this.StopRun()
 	}
-	fmt.Println(area)
-	var orderinfo models.EOrders
-	//orderinfo.OrderSn = CreateRandOrderOn() // 生成订单号
-	orderinfo.MId = int(userId)
-	orderinfo.WorkerId = workerId
-	orderinfo.Area = area
-	orderinfo.ConstructionTime = int(strToUnixTime(constructionTime))
-	orderinfo.BasementMembrane = basementMembrane
-	orderinfo.IsTearOfOldWallpaper = oldWallpaper
-	orderinfo.IsMateriel = materials
-	orderinfo.MoreDescription = moreDescription
-	orderinfo.CreateAt = time.Now().Format("2006-01-02 15:04:05")
-	orderinfo.Status = 1
-	orderinfo.OrderType = orderType
-	orderinfo.Images = images
-	orderinfo.Address = Address
-	fmt.Println(orderinfo)
+
+	//  处理施工时间格式
+	constructionTime = strings.Replace(constructionTime, "/", "-", -1)
+
+	var orderInfo models.EOrders
+	orderInfo.OrderSn = CreateRandOrderOn() // 生成订单号
+	orderInfo.MId = int(userId)
+	orderInfo.WorkerId = workerId
+	orderInfo.Area = area
+	orderInfo.ConstructionTime = int(strToUnixTime(constructionTime))
+	orderInfo.BasementMembrane = basementMembrane
+	orderInfo.IsTearOfOldWallpaper = oldWallpaper
+	orderInfo.IsMateriel = materials
+	orderInfo.MoreDescription = moreDescription
+	orderInfo.CreateAt = time.Now().Format("2006-01-02 15:04:05")
+	orderInfo.Status = 1
+	orderInfo.OrderType = orderType
+	orderInfo.Images = images
+	orderInfo.Address = Address
+	fmt.Println(orderInfo)
 	//panic("orderinfo")
 	o := orm.NewOrm()
-	id, errors := o.Insert(&orderinfo)
+	id, errors := o.Insert(&orderInfo)
 	fmt.Println(errors)
 	if errors == nil {
 		this.Data["json"] = ReturnSuccess(0, "success", id, 1)
@@ -247,7 +244,7 @@ func (this *Orders) MasterOrderList() {
 				returnVal[k] = map[string]interface{}{}
 			}
 			returnVal[k]["id"] = data[k].Id
-			returnVal[k]["order_sn"] = "00000"
+			returnVal[k]["order_sn"] = data[k].OrderSn
 			serviceTypeObj, _ := models.GetServiceType(int64(data[k].ServiceId))
 			returnVal[k]["service_type_str"] = serviceTypeObj.TypeName
 			returnVal[k]["service_time"] = data[k].ConstructionTime
@@ -386,9 +383,9 @@ func (this *Orders) OrderManageMaster() {
 		this.ServeJSON()
 		return
 	}
-	num, data, err := models.GetOrderOfStepAll(orderId, int(this.CurrentLoginUser.Id))
-	if err == nil && num > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", data, num)
+	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id))
+	if err == nil && data.Id > 0 {
+		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
 		this.ServeJSON()
 	} else {
 		this.Data["json"] = ReturnError(40001, "暂无记录")
@@ -409,9 +406,9 @@ func (this *Orders) OrderManageUser() {
 		this.ServeJSON()
 		return
 	}
-	num, data, err := models.GetOrderOfStepAll(orderId, int(this.CurrentLoginUser.Id))
-	if err == nil && num > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", data, num)
+	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id))
+	if err == nil && data.Id > 0 {
+		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
 		this.ServeJSON()
 	} else {
 		this.Data["json"] = ReturnError(40001, "暂无记录")
