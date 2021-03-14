@@ -170,16 +170,17 @@ func (this *OrderStep) ConfirmArrivals() {
 // @Param	service_type		query 	int	true		"the service_type 服务类型"
 // @Param	construction_type		query 	int	true		"the construction_type 施工类型"
 // @Param	price		query 	float64	true		"the price 报价"
+// @Param	area		query 	float64	true		"the area"
+// @Param	discounted_price		query 	float64	true		"the discounted_price"
 // @Param	unit		query 	int	true		"the unit类型"
 // @Param	info		query 	string	true		"the info"
-// @Param	deposit_price		query 	float	true		"the deposit_price 定金"
+// @Param	total_price		query 	float	true		"the total_price 总金额"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
 // @router /actual_offer [post]
 func (this *OrderStep) ActualOffer() {
 	// 接收参数
 	orderId, _ := this.GetInt("order_id")
-	wId, _ := this.GetInt("w_id")
 	serviceType, _ := this.GetInt("service_type")
 	constructionType, _ := this.GetInt("construction_type")
 	price, _ := this.GetFloat("price")
@@ -191,7 +192,6 @@ func (this *OrderStep) ActualOffer() {
 	// 参数效验 Todo
 	valid := validation.Validation{}
 	valid.Required(orderId, "order_id")
-	valid.Required(wId, "w_id")
 	valid.Required(serviceType, "serviceType")
 	valid.Required(constructionType, "constructionType")
 	valid.Required(price, "price")
@@ -209,13 +209,17 @@ func (this *OrderStep) ActualOffer() {
 			return
 		}
 	}
-	// 更新订单步骤 并更新订单表对应的相关信息
-	if models.ModifyOrdersStepActualQuotation(orderId, wId, serviceType, constructionType, unit, area, price, discountedPrice, totalPrice, info) {
-		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
-		this.ServeJSON()
-	} else {
-		this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
-		this.ServeJSON()
+	//查询当前用户的师傅id
+	workerInfo, workerInfoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+	if workerInfoErr == nil && workerInfo.Id > 0 {
+		// 更新订单步骤 并更新订单表对应的相关信息
+		if models.ModifyOrdersStepActualQuotation(orderId, workerInfo.Id, serviceType, constructionType, unit, area, price, discountedPrice, totalPrice, info) {
+			this.Data["json"] = ReturnSuccess(0, "success", "", 0)
+			this.ServeJSON()
+		} else {
+			this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+			this.ServeJSON()
+		}
 	}
 }
 
