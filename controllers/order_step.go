@@ -139,7 +139,7 @@ func (this *OrderStep) ConfirmAdvanceOrder() {
 // @Param	order_id		query 	int	true		"the order id"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
-// @router /confirm_advance_order [post]
+// @router /confirm_arrivals [post]
 func (this *OrderStep) ConfirmArrivals() {
 	orderId, _ := this.GetInt("order_id")
 	if orderId == 0 {
