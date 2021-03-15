@@ -240,7 +240,7 @@ func ModifyStep3Status(oId, wId int) (bool, error) {
 	return false, err
 }
 
-// 更新用户基础报价确认步骤状态
+// 更新用户实际报价确认步骤状态
 func UpdateOrderStep5(orderId int, mId, insertId int64) (bool, error) {
 	o := orm.NewOrm()
 	num, err := o.QueryTable("e_orders_step").Filter("o_id", orderId).

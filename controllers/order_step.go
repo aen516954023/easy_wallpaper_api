@@ -241,6 +241,11 @@ func (this *OrderStep) ConfirmActualOffer() {
 	}
 	//计算订单支付金额
 	money := data.TotalPrice - data.DiscountedPrice
+	if money <= 0 {
+		this.Data["json"] = ReturnError(40003, "订单金额错误")
+		this.ServeJSON()
+		return
+	}
 	//生成支付订单信息
 	insertId, retValErr := models.InsertOrderPayInfo(CreateRandOrderOn(), oId, int(this.CurrentLoginUser.Id), 2, money)
 	if retValErr == nil && insertId > 0 {
@@ -292,7 +297,7 @@ func (this *OrderStep) Acceptance() {
 // @Param	order_id		query 	int	true		"the order id"
 // @Success 200 {string} auth success
 // @Failure 403 user not exist
-// @router /Acceptance [post]
+// @router /confirm_Acceptance [post]
 func (this *OrderStep) ConfirmAcceptance() {
 	oId, _ := this.GetInt("order_id")
 	//通过订单id 查询订单信息,实际报价信息
