@@ -194,12 +194,30 @@ func ModifyStepStatus(oId, wId int) bool {
 // 确认验收
 func ModifyConfirmAcceptance(oId, mId int) bool {
 	o := orm.NewOrm()
+	beginErr := o.Begin()
+	if beginErr != nil {
+		return false
+	}
 	num, err := o.QueryTable("e_orders_step").Filter("o_id", oId).Filter("m_id", mId).Update(orm.Params{
 		"step7":      1,
 		"step7_time": time.Now().Unix(),
 	})
 	if err == nil && num > 0 {
-		return true
+		//验收成功 更新订单表中状态为订单已结束，待评价
+		ordersNum, ordersErr := o.QueryTable("e_orders").Filter("id", oId).Filter("m_id", mId).Update(orm.Params{
+			"status": 3,
+		})
+		if ordersErr == nil && ordersNum > 0 {
+			comErr := o.Commit()
+			if comErr != nil {
+				return false
+			}
+			return true
+		}
+	}
+	rollErr := o.Rollback()
+	if rollErr != nil {
+		return false
 	}
 	return false
 }
