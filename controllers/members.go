@@ -29,3 +29,19 @@ func (this *Members) Index() {
 	this.Data["json"] = ReturnSuccess(0, "success", data, 1)
 	this.ServeJSON()
 }
+
+// @Title 获取手机号码接口
+// @Description 获取手机号码接口
+// @Param	token		header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /is_mobile_empty [post]
+func (this *Members) IsMobileEmpty() {
+	if this.CurrentLoginUser.Phone == "" {
+		this.Data["json"] = ReturnSuccess(0, "success", true, 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnSuccess(0, "success", false, 0)
+	this.ServeJSON()
+}

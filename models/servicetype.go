@@ -11,6 +11,7 @@ type EServiceType struct {
 	TypeName string
 	Image    string
 	Status   int
+	Count    int
 	CreateAt string
 }
 
