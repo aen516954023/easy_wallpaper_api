@@ -79,3 +79,9 @@ func JsonToMap(jsonStr string) (map[string]interface{}, error) {
 	}
 	return m, nil
 }
+
+//订单结束时间计算 cTime 订单创建时间， sTime 后台参数设置的时间
+func GetEndTime(cTime string, hour int) int64 {
+	tempTime := 60 * 60 * 24 * hour // 一天的秒数
+	return (strToUnixTime(cTime) + int64(tempTime)) - time.Now().Unix()
+}

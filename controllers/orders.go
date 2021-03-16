@@ -31,7 +31,26 @@ func (this *Orders) Index() {
 	}
 	num, data, err := models.GetOrdersAll(s)
 	if err == nil && num > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", data, num)
+		returnValue := make([]map[string]interface{}, num)
+		for k, v := range data {
+			if returnValue[k] == nil {
+				returnValue[k] = map[string]interface{}{}
+			}
+			returnValue[k]["Id"] = v.Id
+			returnValue[k]["Status"] = v.Status
+			returnValue[k]["CreateAt"] = v.CreateAt
+			returnValue[k]["ServiceId"] = v.ServiceId
+			eType, _ := models.GetServiceType(int64(v.ServiceId))
+			returnValue[k]["ServiceName"] = eType.TypeName
+			returnValue[k]["OrderSn"] = v.OrderSn
+			returnValue[k]["WorkerId"] = v.WorkerId
+			returnValue[k]["WorkerName"] = "王师傅"
+			returnValue[k]["AvatarImg"] = ""
+			if v.Status <= 1 {
+				returnValue[k]["EndTime"] = GetEndTime(v.CreateAt, 3) //这个3 指3小时 取数据库参数配置时间
+			}
+		}
+		this.Data["json"] = ReturnSuccess(0, "success", returnValue, num)
 		this.ServeJSON()
 		return
 	}
