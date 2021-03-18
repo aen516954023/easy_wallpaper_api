@@ -59,7 +59,6 @@ func (this *OrderStep) AdvanceOrder() {
 	valid := validation.Validation{}
 	valid.Required(orderId, "order_id")
 	valid.Required(serviceType, "serviceType")
-	valid.Required(constructionType, "constructionType")
 	valid.Required(price, "price")
 	valid.Required(info, "info")
 	valid.Required(depositPrice, "depositPrice")
@@ -77,7 +76,10 @@ func (this *OrderStep) AdvanceOrder() {
 	workerInfo, workerInfoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
 	if workerInfoErr == nil && workerInfo.Id > 0 {
 		//处理上门时间格式
+		fmt.Println("htime", hTime)
 		hTime = strings.Replace(hTime, "/", "-", -1)
+		fmt.Println("htime", hTime)
+
 		// 更新订单步骤 并更新订单表对应的相关信息
 		if models.ModifyOrdersStepTwo(orderId, workerInfo.Id, serviceType, constructionType, unit, price, depositPrice, info, strToUnixTime(hTime)) {
 			this.Data["json"] = ReturnSuccess(0, "success", "", 0)

@@ -11,6 +11,33 @@ type Workers struct {
 	Base
 }
 
+// @Title 师傅中心
+// @Description 师傅中心数据接口
+// @Param	token		header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /get_master_center [post]
+func (this *Workers) GetMasterCenter() {
+	// 查询当前用户师傅信息
+	info, err := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+	if err == nil && info.Id > 0 {
+		returnVal := make(map[string]interface{})
+		returnVal["username"] = info.Username
+		returnVal["avatar"] = info.Image
+		returnVal["is_real_name"] = info.IsRealName
+		returnVal["is_exp"] = info.Exp
+		returnVal["is_warranty"] = info.Warranty
+		returnVal["order_count"] = 0        //可接单次数
+		returnVal["account_money"] = "0.00" //可用余额
+
+		this.Data["json"] = ReturnSuccess(0, "success", returnVal, 1)
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40001, "没有查询到相关数据")
+	this.ServeJSON()
+}
+
 // @Title 师傅入驻页
 // @Description 师傅入驻申请页数据接口
 // @Param	token		header 	string	true		"the token"

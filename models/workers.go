@@ -25,10 +25,19 @@ type EMasterWorker struct {
 	CreateAt    string
 }
 
+// 通过mid获取师傅信息
 func GetMasterWorkerInfo(uid int64) (EMasterWorker, error) {
 	o := orm.NewOrm()
 	var data EMasterWorker
 	err := o.QueryTable("e_master_worker").Filter("m_id", uid).One(&data)
+	return data, err
+}
+
+//通过id获取师傅信息
+func GetMasterWorkerInfId(id int) (EMasterWorker, error) {
+	o := orm.NewOrm()
+	var data EMasterWorker
+	err := o.QueryTable("e_master_worker").Filter("id", id).One(&data)
 	return data, err
 }
 

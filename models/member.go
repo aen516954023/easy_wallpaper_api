@@ -24,6 +24,14 @@ func GetMemberInfo(openId string) (EMembers, error) {
 	return data, err
 }
 
+//通过id查询用户信息
+func GetMemberInfoId(id int) (EMembers, error) {
+	o := orm.NewOrm()
+	var data EMembers
+	err := o.QueryTable("e_members").Filter("id", id).One(&data)
+	return data, err
+}
+
 //创建新用户
 func AddMember(openId string) (int64, error) {
 	o := orm.NewOrm()

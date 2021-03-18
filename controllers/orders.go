@@ -266,7 +266,7 @@ func (this *Orders) MasterOrderList() {
 			returnVal[k]["order_sn"] = data[k].OrderSn
 			serviceTypeObj, _ := models.GetServiceType(int64(data[k].ServiceId))
 			returnVal[k]["service_type_str"] = serviceTypeObj.TypeName
-			returnVal[k]["service_time"] = data[k].ConstructionTime
+			returnVal[k]["service_time"] = UnixTimeToSTr(int64(data[k].ConstructionTime))
 			returnVal[k]["area"] = data[k].Area
 			returnVal[k]["service_list"] = constructionData[data[k].IsMateriel]
 			returnVal[k]["create_time"] = data[k].CreateAt
@@ -301,14 +301,16 @@ func (this *Orders) GetMasterOrdersInfo() {
 		// 订单详情数据
 		serviceType, _ := models.GetServiceType(int64(data.ServiceId))
 		returnValue["id"] = data.Id
+		returnValue["sn"] = data.OrderSn
 		returnValue["service_type"] = serviceType.TypeName
+		returnValue["construction_type"] = constructionData[data.ConstructionType]
 		returnValue["address"] = data.Address
 		returnValue["area"] = data.Area
 		returnValue["create_at"] = data.CreateAt
 		if data.ConstructionTime == 0 {
 			returnValue["construction_time"] = "--"
 		} else {
-			returnValue["construction_time"] = data.ConstructionTime
+			returnValue["construction_time"] = UnixTimeToSTr(int64(data.ConstructionTime))
 		}
 		returnValue["basement_membrane"] = data.BasementMembrane
 		returnValue["is_masteriel"] = data.IsMateriel
@@ -402,9 +404,58 @@ func (this *Orders) OrderManageMaster() {
 		this.ServeJSON()
 		return
 	}
+	returnVal := make(map[string]interface{})
 	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id))
 	if err == nil && data.Id > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+		returnVal["WId"] = data.WId
+		wInfo, _ := models.GetMasterWorkerInfId(data.WId)
+		fmt.Println("wInfo", wInfo)
+		returnVal["w_username"] = wInfo.Username
+		returnVal["w_avatar"] = wInfo.Image
+		mInfo, _ := models.GetMemberInfoId(wInfo.MId)
+		returnVal["phone"] = mInfo.Phone
+		oInfo, _ := models.GetOrderInfo(data.OId)
+		returnVal["o_status"] = oInfo.Status
+		returnVal["Area"] = data.Area
+		returnVal["ConstructionType"] = data.ConstructionType
+		returnVal["ConstructionTypeStr"] = constructionData[data.ConstructionType]
+		returnVal["CreateAt"] = data.CreateAt
+		//DepositId: 0
+		returnVal["DepositPrice"] = data.DepositPrice
+		returnVal["DepositStatus"] = data.DepositStatus
+		returnVal["DiscountedPrice"] = data.DiscountedPrice
+		returnVal["HomeTime"] = data.HomeTime
+		returnVal["Id"] = data.Id
+		returnVal["Info"] = data.Info
+		returnVal["MId"] = data.MId
+		returnVal["OId"] = data.OId
+		//PayId: 0
+		returnVal["PayStatus"] = data.PayStatus
+		returnVal["Price"] = data.Price
+		sInfo, _ := models.GetServiceType(int64(data.ServiceType))
+		returnVal["ServiceType"] = data.ServiceType
+		returnVal["ServiceTypeStr"] = sInfo.TypeName
+		returnVal["Step1"] = data.Step1
+		returnVal["Step1Time"] = UnixTimeToSTr(int64(data.Step1Time))
+		returnVal["Step2"] = data.Step2
+		returnVal["Step2Time"] = UnixTimeToSTr(int64(data.Step2Time))
+		returnVal["Step3"] = data.Step3
+		returnVal["Step3Time"] = UnixTimeToSTr(int64(data.Step3Time))
+		returnVal["Step4"] = data.Step4
+		returnVal["Step4Time"] = UnixTimeToSTr(int64(data.Step4Time))
+		returnVal["Step5"] = data.Step5
+		returnVal["Step5Time"] = UnixTimeToSTr(int64(data.Step5Time))
+		returnVal["Step6"] = data.Step6
+		returnVal["Step6Time"] = UnixTimeToSTr(int64(data.Step6Time))
+		returnVal["Step7"] = data.Step7
+		returnVal["Step7Time"] = UnixTimeToSTr(int64(data.Step7Time))
+		returnVal["TotalPrice"] = data.TotalPrice
+		returnVal["Unit"] = data.Unit
+
+		_, list, _ := models.GetAllServiceType()
+		returnVal["service_type_list"] = list
+		returnVal["construction_type_list"] = constructionData
+		this.Data["json"] = ReturnSuccess(0, "success", returnVal, 1)
 		this.ServeJSON()
 	} else {
 		this.Data["json"] = ReturnError(40001, "暂无记录")
@@ -425,9 +476,53 @@ func (this *Orders) OrderManageUser() {
 		this.ServeJSON()
 		return
 	}
+	returnVal := make(map[string]interface{})
 	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id))
 	if err == nil && data.Id > 0 {
-		this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+		returnVal["WId"] = data.WId
+		wInfo, _ := models.GetMasterWorkerInfId(data.WId)
+		fmt.Println("wInfo", wInfo)
+		returnVal["w_username"] = wInfo.Username
+		returnVal["w_avatar"] = wInfo.Image
+		mInfo, _ := models.GetMemberInfoId(wInfo.MId)
+		returnVal["phone"] = mInfo.Phone
+		oInfo, _ := models.GetOrderInfo(data.OId)
+		returnVal["o_status"] = oInfo.Status
+		returnVal["Area"] = data.Area
+		returnVal["ConstructionType"] = constructionData[data.ConstructionType]
+		returnVal["CreateAt"] = data.CreateAt
+		//DepositId: 0
+		returnVal["DepositPrice"] = data.DepositPrice
+		returnVal["DepositStatus"] = data.DepositStatus
+		returnVal["DiscountedPrice"] = data.DiscountedPrice
+		returnVal["HomeTime"] = data.HomeTime
+		returnVal["Id"] = data.Id
+		returnVal["Info"] = data.Info
+		returnVal["MId"] = data.MId
+		returnVal["OId"] = data.OId
+		//PayId: 0
+		returnVal["PayStatus"] = data.PayStatus
+		returnVal["Price"] = data.Price
+		sInfo, _ := models.GetServiceType(int64(data.ServiceType))
+		returnVal["ServiceType"] = sInfo.TypeName
+		returnVal["Step1"] = data.Step1
+		returnVal["Step1Time"] = UnixTimeToSTr(int64(data.Step1Time))
+		returnVal["Step2"] = data.Step2
+		returnVal["Step2Time"] = UnixTimeToSTr(int64(data.Step2Time))
+		returnVal["Step3"] = data.Step3
+		returnVal["Step3Time"] = UnixTimeToSTr(int64(data.Step3Time))
+		returnVal["Step4"] = data.Step4
+		returnVal["Step4Time"] = UnixTimeToSTr(int64(data.Step4Time))
+		returnVal["Step5"] = data.Step5
+		returnVal["Step5Time"] = UnixTimeToSTr(int64(data.Step5Time))
+		returnVal["Step6"] = data.Step6
+		returnVal["Step6Time"] = UnixTimeToSTr(int64(data.Step6Time))
+		returnVal["Step7"] = data.Step7
+		returnVal["Step7Time"] = UnixTimeToSTr(int64(data.Step7Time))
+		returnVal["TotalPrice"] = data.TotalPrice
+		returnVal["Unit"] = data.Unit
+
+		this.Data["json"] = ReturnSuccess(0, "success", returnVal, 1)
 		this.ServeJSON()
 	} else {
 		this.Data["json"] = ReturnError(40001, "暂无记录")
