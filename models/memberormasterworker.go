@@ -81,9 +81,10 @@ func GetOrderWorkerList(orderId int) (int64, []OrderWorkerList, error) {
 //师傅参与的订单
 type OrderMasterList struct {
 	Id               int
+	OrderSn          string
 	ServiceId        int
 	ConstructionType int
-	ConstructionTime string
+	ConstructionTime int
 	Area             float64
 	CreateAt         string
 }
@@ -91,6 +92,6 @@ type OrderMasterList struct {
 func GetOrderMasterAll(mId int64) (int64, []OrderMasterList, error) {
 	o := orm.NewOrm()
 	var data []OrderMasterList
-	num, err := o.Raw("SELECT o.id,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=?", mId).QueryRows(&data)
+	num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=1", mId).QueryRows(&data)
 	return num, data, err
 }

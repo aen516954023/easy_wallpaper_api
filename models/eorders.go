@@ -28,15 +28,25 @@ func init() {
 }
 
 //查看所有订单列表
-func GetOrdersAll(status int) (int64, []EOrders, error) {
+func GetOrdersAll(mId int64, status, flag int) (int64, []EOrders, error) {
 	o := orm.NewOrm()
 	var data []EOrders
-	if status == 0 {
-		num, err := o.QueryTable("e_orders").Filter("status__gt", 0).All(&data)
-		return num, data, err
+	if flag == 2 {
+		if status == 0 {
+			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status__gt", 0).All(&data)
+			return num, data, err
+		} else {
+			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status", status).All(&data)
+			return num, data, err
+		}
 	} else {
-		num, err := o.QueryTable("e_orders").Filter("status", status).All(&data)
-		return num, data, err
+		if status == 0 {
+			num, err := o.QueryTable("e_orders").Filter("m_id", mId).Filter("status__gt", 0).All(&data)
+			return num, data, err
+		} else {
+			num, err := o.QueryTable("e_orders").Filter("m_id", mId).Filter("status", status).All(&data)
+			return num, data, err
+		}
 	}
 }
 

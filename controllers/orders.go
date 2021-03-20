@@ -29,7 +29,7 @@ func (this *Orders) Index() {
 	if status != 0 {
 		s = status
 	}
-	num, data, err := models.GetOrdersAll(s)
+	num, data, err := models.GetOrdersAll(this.CurrentLoginUser.Id, s, 1)
 	if err == nil && num > 0 {
 		returnValue := make([]map[string]interface{}, num)
 		for k, v := range data {
@@ -254,7 +254,7 @@ func (this *Orders) OrderCancel() {
 // @router /get_master_orders_list [post]
 func (this *Orders) MasterOrderList() {
 
-	num, data, err := models.GetOrdersAll(1)
+	num, data, err := models.GetOrdersAll(this.CurrentLoginUser.Id, 1, 2)
 	if err == nil && num > 0 {
 		returnVal := make([]map[string]interface{}, len(data))
 		for k := 0; k < len(returnVal); k++ {
@@ -495,7 +495,7 @@ func (this *Orders) OrderManageUser() {
 		returnVal["DepositPrice"] = data.DepositPrice
 		returnVal["DepositStatus"] = data.DepositStatus
 		returnVal["DiscountedPrice"] = data.DiscountedPrice
-		returnVal["HomeTime"] = data.HomeTime
+		returnVal["HomeTime"] = UnixTimeToSTr(int64(data.HomeTime))
 		returnVal["Id"] = data.Id
 		returnVal["Info"] = data.Info
 		returnVal["MId"] = data.MId

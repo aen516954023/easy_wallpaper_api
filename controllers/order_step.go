@@ -337,8 +337,9 @@ func (this *OrderStep) GetPayInfo() {
 	data := make(map[string]interface{})
 	orderData, orderErr := models.GetOrderOfStepInfo(oId)
 	if orderErr == nil && orderData.Id > 0 {
-		data["service_type"] = orderData.ServiceType
-		data["construction_type"] = orderData.ConstructionType
+		sInfo, _ := models.GetServiceType(int64(orderData.ServiceType))
+		data["service_type"] = sInfo.TypeName
+		data["construction_type"] = constructionData[orderData.ConstructionType]
 		data["area"] = orderData.Area
 		data["price"] = orderData.Price
 		data["deposit_price"] = orderData.DepositPrice
@@ -365,6 +366,7 @@ func (this *OrderStep) GetPayInfo() {
 	if payErr == nil && payData.Id > 0 {
 		data["order_sn"] = payData.OrderSn
 		data["total_price"] = payData.TotalPrice
+		data["pay_type"] = payData.Type
 	}
 
 	this.Data["json"] = ReturnSuccess(0, "success", data, 1)

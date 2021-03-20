@@ -153,8 +153,9 @@ func (this *Workers) OrderList() {
 			var constructionData = []string{"主料+辅料+施工", "仅施工", "辅料+施工"}
 			returnVal[k]["ConstructionType"] = constructionData[data[k].ConstructionType]
 			returnVal[k]["Area"] = data[k].Area
-			returnVal[k]["ConstructionTime"] = data[k].ConstructionTime
+			returnVal[k]["ConstructionTime"] = UnixTimeToSTr(int64(data[k].ConstructionTime))
 			returnVal[k]["CreateAt"] = data[k].CreateAt
+			returnVal[k]["OrderSn"] = data[k].OrderSn
 		}
 		this.Data["json"] = ReturnSuccess(0, "success", returnVal, num)
 		this.ServeJSON()
