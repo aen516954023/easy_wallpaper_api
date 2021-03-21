@@ -4,7 +4,6 @@ import (
 	"easy_wallpaper_api/models"
 	"fmt"
 	"github.com/beego/beego/v2/core/validation"
-	"log"
 	"strings"
 )
 
@@ -195,7 +194,7 @@ func (this *OrderStep) ActualOffer() {
 	valid := validation.Validation{}
 	valid.Required(orderId, "order_id")
 	valid.Required(serviceType, "serviceType")
-	valid.Required(constructionType, "constructionType")
+	//valid.Required(constructionType, "constructionType")
 	valid.Required(price, "price")
 	valid.Required(area, "area")
 	valid.Required(discountedPrice, "discountedPrice")
@@ -205,7 +204,7 @@ func (this *OrderStep) ActualOffer() {
 	if valid.HasErrors() {
 		// 如果有错误信息，证明验证没通过
 		for _, err := range valid.Errors {
-			log.Fatal(err.Key, err.Message)
+			//log.Fatal(err.Key, err.Message)
 			this.Data["json"] = ReturnError(40000, err.Message)
 			this.ServeJSON()
 			return
