@@ -205,7 +205,7 @@ func (this *OrderStep) ActualOffer() {
 		// 如果有错误信息，证明验证没通过
 		for _, err := range valid.Errors {
 			//log.Fatal(err.Key, err.Message)
-			this.Data["json"] = ReturnError(40000, err.Message)
+			this.Data["json"] = ReturnError(40000, err.Key+err.Message)
 			this.ServeJSON()
 			return
 		}
