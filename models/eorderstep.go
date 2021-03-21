@@ -48,7 +48,7 @@ type EOrdersStep struct {
 }
 
 //添加参与记录,并更新选中的师傅状态
-func InsertOrdersStep(oId, mId, wId int) bool {
+func InsertOrdersStep(oId, mId, wId, sId, cId int) bool {
 	o := orm.NewOrm()
 	var data EOrdersStep
 	beginErr := o.Begin()
@@ -59,6 +59,8 @@ func InsertOrdersStep(oId, mId, wId int) bool {
 	data.MId = mId
 	data.OId = oId
 	data.WId = wId
+	data.ServiceType = sId
+	data.ConstructionType = cId
 	data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	InsertId, err := o.Insert(&data)
 	if err == nil && InsertId > 0 {
@@ -222,11 +224,17 @@ func ModifyConfirmAcceptance(oId, mId int) bool {
 	return false
 }
 
-func GetOrderOfStepOne(orderId, mId int) (EOrdersStep, error) {
+func GetOrderOfStepOne(orderId, uId int, flag bool) (EOrdersStep, error) {
 	o := orm.NewOrm()
 	var data EOrdersStep
-	err := o.QueryTable("e_orders_step").Filter("o_id", orderId).Filter("m_id", mId).OrderBy("-create_at").One(&data)
-	return data, err
+	if flag {
+		err := o.QueryTable("e_orders_step").Filter("o_id", orderId).Filter("w_id", uId).OrderBy("-create_at").One(&data)
+		return data, err
+	} else {
+		err := o.QueryTable("e_orders_step").Filter("o_id", orderId).Filter("m_id", uId).OrderBy("-create_at").One(&data)
+		return data, err
+	}
+
 }
 
 // 更新用户基础报价确认步骤状态

@@ -26,7 +26,16 @@ func (this *OrderStep) ConfirmMasterWorker() {
 	// 更新师傅参与表中其它参与的师傅的状态
 	orderId, _ := this.GetInt("order_id")
 	workerId, _ := this.GetInt("w_id")
-	if models.InsertOrdersStep(orderId, int(this.CurrentLoginUser.Id), workerId) {
+	// 通过订单id 查询用户选择的订单参数
+	orderInfo, err := models.GetOrderInfo(orderId)
+
+	if err != nil || orderInfo.Id <= 0 {
+		this.Data["json"] = ReturnError(40000, "选择失败，订单信息未找到")
+		this.ServeJSON()
+		return
+	}
+
+	if models.InsertOrdersStep(orderId, int(this.CurrentLoginUser.Id), workerId, orderInfo.ServiceId, orderInfo.ConstructionType) {
 		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
 		this.ServeJSON()
 	} else {

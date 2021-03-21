@@ -25,6 +25,6 @@ func GetAllServiceType() (int64, []EServiceType, error) {
 func GetServiceType(id int64) (EServiceType, error) {
 	o := orm.NewOrm()
 	var data EServiceType
-	err := o.QueryTable(new(EServiceType)).One(&data)
+	err := o.QueryTable(new(EServiceType)).Filter("id", id).One(&data)
 	return data, err
 }

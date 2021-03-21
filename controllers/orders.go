@@ -43,7 +43,7 @@ func (this *Orders) Index() {
 			eType, _ := models.GetServiceType(int64(v.ServiceId))
 			returnValue[k]["ServiceName"] = eType.TypeName
 			returnValue[k]["OrderSn"] = v.OrderSn
-			returnValue[k]["WorkerId"] = v.WorkerId
+			returnValue[k]["WorkerId"] = v.WorkerId // Todo 订单列表师傅数据展示处理
 			returnValue[k]["WorkerName"] = "王师傅"
 			returnValue[k]["AvatarImg"] = ""
 			if v.Status <= 1 {
@@ -137,9 +137,11 @@ func (this *Orders) OrderPages() {
 // @router /confirm_order [post]
 func (this *Orders) SaveOrder() {
 	// 获取参数
-	Address := this.GetString("address")                       // 施工地址
-	constructionTime := this.GetString("construction_time")    // 施工时间
-	types, typesErr := this.GetInt("types")                    // 服务类型
+	Address := this.GetString("address")                    // 施工地址
+	constructionTime := this.GetString("construction_time") // 施工时间
+	types, typesErr := this.GetInt("types")                 // 服务类型
+	constructionType, _ := this.GetInt("construction_type") // 施工类型
+
 	materials, _ := this.GetInt("is_materials")                // 是否提供物料
 	area, areaErr := this.GetFloat("area")                     // 面积
 	oldWallpaper, _ := this.GetInt("is_tear_of_old_wallpaper") // 是否清除旧纸
@@ -178,7 +180,7 @@ func (this *Orders) SaveOrder() {
 		this.ServeJSON()
 		this.StopRun()
 	}
-	fmt.Println(types)
+	//fmt.Println(types)
 
 	if areaErr != nil || area < 1 {
 		this.Data["json"] = ReturnError(40001, "请选择有效的施工面积")
@@ -204,6 +206,8 @@ func (this *Orders) SaveOrder() {
 	orderInfo.OrderType = orderType
 	orderInfo.Images = images
 	orderInfo.Address = Address
+	orderInfo.ConstructionType = constructionType
+	orderInfo.ServiceId = types
 	fmt.Println(orderInfo)
 	//panic("orderinfo")
 	o := orm.NewOrm()
@@ -405,7 +409,8 @@ func (this *Orders) OrderManageMaster() {
 		return
 	}
 	returnVal := make(map[string]interface{})
-	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id))
+	masterInfo, _ := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
+	data, err := models.GetOrderOfStepOne(orderId, masterInfo.Id, true)
 	if err == nil && data.Id > 0 {
 		returnVal["WId"] = data.WId
 		wInfo, _ := models.GetMasterWorkerInfId(data.WId)
@@ -477,7 +482,7 @@ func (this *Orders) OrderManageUser() {
 		return
 	}
 	returnVal := make(map[string]interface{})
-	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id))
+	data, err := models.GetOrderOfStepOne(orderId, int(this.CurrentLoginUser.Id), false)
 	if err == nil && data.Id > 0 {
 		returnVal["WId"] = data.WId
 		wInfo, _ := models.GetMasterWorkerInfId(data.WId)
