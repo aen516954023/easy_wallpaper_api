@@ -31,20 +31,21 @@ func init() {
 func GetOrdersAll(mId int64, status, flag int) (int64, []EOrders, error) {
 	o := orm.NewOrm()
 	var data []EOrders
+	// flag 1 用户端订单列表  2 师傅端 订单大厅
 	if flag == 2 {
 		if status == 0 {
-			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status__gt", 0).All(&data)
+			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status__gt", 0).OrderBy("-create_at").All(&data)
 			return num, data, err
 		} else {
-			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status", status).All(&data)
+			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status", status).OrderBy("-create_at").All(&data)
 			return num, data, err
 		}
 	} else {
 		if status == 0 {
-			num, err := o.QueryTable("e_orders").Filter("m_id", mId).Filter("status__gt", 0).All(&data)
+			num, err := o.QueryTable("e_orders").Filter("m_id", mId).Filter("status__gt", 0).OrderBy("-create_at").All(&data)
 			return num, data, err
 		} else {
-			num, err := o.QueryTable("e_orders").Filter("m_id", mId).Filter("status", status).All(&data)
+			num, err := o.QueryTable("e_orders").Filter("m_id", mId).Filter("status", status).OrderBy("-create_at").All(&data)
 			return num, data, err
 		}
 	}

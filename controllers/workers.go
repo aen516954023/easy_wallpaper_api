@@ -138,8 +138,13 @@ func (this *Workers) Apply() {
 // @Failure 403 user not exist
 // @router /order_list [post]
 func (this *Workers) OrderList() {
-
-	num, data, err := models.GetOrderMasterAll(this.CurrentLoginUser.Id)
+	// 接收订单状态参数
+	status, _ := this.GetInt("status")
+	s := 0
+	if status != 0 {
+		s = status
+	}
+	num, data, err := models.GetOrderMasterAll(this.CurrentLoginUser.Id, s)
 	if err == nil && num > 0 {
 		returnVal := make([]map[string]interface{}, num)
 		for k := 0; k < len(returnVal); k++ {

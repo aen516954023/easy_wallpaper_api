@@ -43,9 +43,12 @@ func (this *Orders) Index() {
 			eType, _ := models.GetServiceType(int64(v.ServiceId))
 			returnValue[k]["ServiceName"] = eType.TypeName
 			returnValue[k]["OrderSn"] = v.OrderSn
-			returnValue[k]["WorkerId"] = v.WorkerId // Todo 订单列表师傅数据展示处理
-			returnValue[k]["WorkerName"] = "王师傅"
-			returnValue[k]["AvatarImg"] = ""
+			//returnValue[k]["WorkerId"] = v.WorkerId // Todo 订单列表师傅数据展示处理
+			stepInfo, _ := models.GetOrderOfStepInfo(v.Id)
+			masterInfo, _ := models.GetMasterWorkerInfId(stepInfo.WId)
+			returnValue[k]["WorkerId"] = stepInfo.WId
+			returnValue[k]["WorkerName"] = masterInfo.Username
+			returnValue[k]["AvatarImg"] = masterInfo.Image
 			if v.Status <= 1 {
 				returnValue[k]["EndTime"] = GetEndTime(v.CreateAt, 3) //这个3 指3小时 取数据库参数配置时间
 			}
@@ -300,6 +303,7 @@ func (this *Orders) GetMasterOrdersInfo() {
 		return
 	}
 	data, err := models.GetOrderInfo(oId)
+	fmt.Println("data", data)
 	if err == nil {
 		returnValue := make(map[string]interface{})
 		// 订单详情数据
