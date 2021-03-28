@@ -5,16 +5,43 @@ import (
 )
 
 func init() {
-	orm.RegisterModel(new(Address))
+	orm.RegisterModel(new(EAddress))
 }
 
 // 地址表
-type Address struct {
+type EAddress struct {
 	Id        int
-	Receiver  string    `orm:"size(20)"`       // 收件人
-	Addr      string    `orm:"size(50)"`       // 收件地址
-	ZipCode   string    `orm:"size(20)"`       // 邮编
-	Phone     string    `orm:"size(20)"`       // 联系方式
-	IsDefault bool      `orm:"default(false)"` // 是否是默认地址
-	User      *EMembers `orm:"rel(fk)"`        // 用户ID
+	MId       int     // 用户id
+	Username  string  // 联系人
+	Phone     string  // 联系方式
+	Name      string  // 地址名称
+	Province  string  // 省
+	City      string  // 市
+	District  string  // 区
+	Address   string  // 地址详情
+	Latitude  float64 // 经度
+	Longitude float64 // 纬度
+	Default   int     // 是否是默认地址
+	CreateAt  string  //添加时间
+}
+
+func GetAddressList(mId int64) (int64, []EAddress, error) {
+	o := orm.NewOrm()
+	var data []EAddress
+	num, err := o.QueryTable("e_address").Filter("m_id", mId).All(&data)
+	return num, data, err
+}
+
+func GetAddressId(id int) (EAddress, error) {
+	o := orm.NewOrm()
+	var data EAddress
+	err := o.QueryTable("e_address").Filter("id", id).One(&data)
+	return data, err
+}
+
+func InsertAddress(insert interface{}) (bool, error) {
+	//o := orm.NewOrm()
+	//var data EAddress
+	//data.MId = insert.Id
+	return true, nil
 }

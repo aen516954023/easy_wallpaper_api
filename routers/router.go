@@ -60,6 +60,11 @@ func init() {
 				&controllers.Test{},
 			),
 		),
+		beego.NSNamespace("/address",
+			beego.NSInclude(
+				&controllers.Address{},
+			),
+		),
 		beego.NSNamespace("/team_orders",
 			beego.NSInclude(
 				&controllers.TeamOrders{},
