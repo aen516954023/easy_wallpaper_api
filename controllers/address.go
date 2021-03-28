@@ -3,6 +3,8 @@ package controllers
 import (
 	"easy_wallpaper_api/models"
 	"fmt"
+	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/validation"
 )
 
 type Address struct {
@@ -62,9 +64,85 @@ func (a *Address) AddressPage() {
 // @Failure 403 user not exist
 // @router /address_action [post]
 func (a *Address) SaveAddress() {
-	paramsMap := a.Ctx.Request.Form
+	// 最多添加5个地址
+	num, _, _ := models.GetAddressList(a.CurrentLoginUser.Id)
+	if num >= 5 {
+		a.Data["json"] = ReturnError(40005, "最多可添加5个地址")
+		a.ServeJSON()
+		return
+	}
+	// 接收参数 数据校验
+	pm := a.Ctx.Request.Form
+	valid := validation.Validation{}
+	valid.Required(pm.Get("username"), "联系人不能为空")
+	valid.Required(pm.Get("phone"), "地址方式不能为空")
+	valid.Required(pm.Get("address_name"), "地址不能为空")
+	valid.Required(pm.Get("address"), "地址详情不能为空")
+	valid.Required(pm.Get("province"), "省份不能为空")
+	valid.Required(pm.Get("city"), "城市不能为空")
+	valid.Required(pm.Get("district"), "市区不能为空")
 
-	fmt.Println(paramsMap)
+	latitude, _ := a.GetFloat("latitude")
+	longitude, _ := a.GetFloat("longitude")
+	isDefault, _ := a.GetInt("default")
 
-	//flag,_ :=
+	if valid.HasErrors() {
+		// 如果有错误信息，证明验证没通过
+		// 打印错误信息
+		for _, err := range valid.Errors {
+			a.Data["json"] = ReturnError(40000, err.Key)
+			a.ServeJSON()
+			return
+		}
+	}
+	// 处理逻辑
+	flag, _ := a.GetInt("aid")
+	if flag > 0 {
+		//修改操作
+		boolVal, err := models.ModifyAddress(
+			flag,
+			int(a.CurrentLoginUser.Id),
+			isDefault,
+			pm.Get("username"),
+			pm.Get("phone"),
+			pm.Get("address_name"),
+			pm.Get("address"),
+			pm.Get("province"),
+			pm.Get("city"),
+			pm.Get("district"),
+			latitude,
+			longitude,
+		)
+		if err == nil && boolVal {
+			a.Data["json"] = ReturnSuccess(0, "success", "", 1)
+			a.ServeJSON()
+		} else {
+			logs.Error("地址修改失败原因:" + fmt.Sprintf("%v", err))
+			a.Data["json"] = ReturnError(40003, "地址修改失败，请稍后再试")
+			a.ServeJSON()
+		}
+	} else {
+		//添加操作
+		insertId, err := models.InsertAddress(
+			int(a.CurrentLoginUser.Id),
+			isDefault,
+			pm.Get("username"),
+			pm.Get("phone"),
+			pm.Get("address_name"),
+			pm.Get("address"),
+			pm.Get("province"),
+			pm.Get("city"),
+			pm.Get("district"),
+			latitude,
+			longitude,
+		)
+		if err == nil && insertId > 0 {
+			a.Data["json"] = ReturnSuccess(0, "success", "", 1)
+			a.ServeJSON()
+		} else {
+			logs.Error("地址添加失败原因:" + fmt.Sprintf("%v", err))
+			a.Data["json"] = ReturnError(40003, "地址添加失败，请稍后再试")
+			a.ServeJSON()
+		}
+	}
 }
