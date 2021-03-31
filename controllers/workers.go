@@ -22,6 +22,7 @@ func (this *Workers) GetMasterCenter() {
 	info, err := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
 	if err == nil && info.Id > 0 {
 		returnVal := make(map[string]interface{})
+		returnVal["id"] = info.Id
 		returnVal["username"] = info.Username
 		returnVal["avatar"] = info.Image
 		returnVal["is_real_name"] = info.IsRealName
@@ -168,4 +169,95 @@ func (this *Workers) OrderList() {
 		this.Data["json"] = ReturnError(40000, "没有相关记录")
 		this.ServeJSON()
 	}
+}
+
+// @Title 师傅信息修改页
+// @Description 师傅信息修改页数据接口
+// @Param	token		header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /edit_master_info [post]
+func (w *Workers) EditMasterInfo() {
+
+	data, err := models.GetMasterWorkerInfo(w.CurrentLoginUser.Id)
+	if err == nil && data.Id > 0 {
+		w.Data["json"] = ReturnSuccess(0, "success", data, 1)
+		w.ServeJSON()
+	} else {
+		w.Data["json"] = ReturnError(40000, "未查询到记录")
+		w.ServeJSON()
+	}
+}
+
+// @Title 师傅信息修改提交
+// @Description 师傅信息修改页提交接口
+//// @Param	token		header 	string	true		"the token"
+//// @Param	username		query 	string	true		"the username"
+//// @Param	gender		query 	string	true		"the gender"
+//// @Param	mobile		query 	string	true		"the mobile"
+//// @Param	avatar		query 	string	true		"the avatar img"
+//// @Param	city		query 	string	true		"the service city"
+//// @Param	address		query 	string	true		"the address"
+//// @Param	exp		query 	int	true		"the exp"
+//// @Param	desc		query 	string	true		"the desc"
+//// @Success 200 {string} auth success
+//// @Failure 403 user not exist
+// @router /save_edit_master_info [post]
+func (this *Workers) SaveEditMasterInfo() {
+	// 接收参数
+	userName := this.GetString("username")
+	gender, _ := this.GetInt("gender")
+	mobile := this.GetString("mobile")
+	city := this.GetString("city")
+	address := this.GetString("address")
+	exp, _ := this.GetInt("exp")
+	desc := this.GetString("desc")
+	avatar := this.GetString("image")
+	// 参数校验
+	if userName == "" {
+		this.Data["json"] = ReturnError(40001, "用户名不能为空")
+		this.ServeJSON()
+		return
+	}
+	if gender == 0 {
+		this.Data["json"] = ReturnError(40001, "性别不能为空")
+		this.ServeJSON()
+		return
+	}
+	if mobile == "" {
+		this.Data["json"] = ReturnError(40001, "手机号码不能为空")
+		this.ServeJSON()
+		return
+	}
+	if city == "" {
+		this.Data["json"] = ReturnError(40001, "服务城市不能为空")
+		this.ServeJSON()
+		return
+	}
+	if address == "" {
+		this.Data["json"] = ReturnError(40001, "联系地址不能为空")
+		this.ServeJSON()
+		return
+	}
+	if exp == 0 {
+		this.Data["json"] = ReturnError(40001, "施工经验不能为空")
+		this.ServeJSON()
+		return
+	}
+	if desc == "" {
+		this.Data["json"] = ReturnError(40001, "个人描述不能为空")
+		this.ServeJSON()
+		return
+	}
+
+	// 写入数据
+	boolVal, err := models.SaveEditMasterInfo(this.CurrentLoginUser.Id, gender, exp, userName, mobile, city, address, desc, avatar, UnixTimeToSTr(time.Now().Unix()))
+	if boolVal && err == nil {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
+		this.ServeJSON()
+		return
+	}
+	logs.Error("师傅资料修改错误：" + fmt.Sprintf("%v", err))
+	this.Data["json"] = ReturnError(40002, "修改失败,请稍后再试")
+	this.ServeJSON()
 }

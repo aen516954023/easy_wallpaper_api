@@ -140,7 +140,8 @@ func (this *Orders) OrderPages() {
 // @router /confirm_order [post]
 func (this *Orders) SaveOrder() {
 	// 获取参数
-	Address := this.GetString("address")                    // 施工地址
+	Address, _ := this.GetInt("address")                    // 施工地址
+	city := this.GetString("city")                          // 施工城市
 	constructionTime := this.GetString("construction_time") // 施工时间
 	types, typesErr := this.GetInt("types")                 // 服务类型
 	constructionType, _ := this.GetInt("construction_type") // 施工类型
@@ -166,7 +167,7 @@ func (this *Orders) SaveOrder() {
 	}
 
 	// 参数效验
-	if Address == "" {
+	if Address == 0 {
 		this.Data["json"] = ReturnError(40001, "地址不能为空")
 		this.ServeJSON()
 		this.StopRun()
@@ -209,6 +210,7 @@ func (this *Orders) SaveOrder() {
 	orderInfo.OrderType = orderType
 	orderInfo.Images = images
 	orderInfo.Address = Address
+	orderInfo.City = city
 	orderInfo.ConstructionType = constructionType
 	orderInfo.ServiceId = types
 	fmt.Println(orderInfo)

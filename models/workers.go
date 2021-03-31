@@ -70,3 +70,22 @@ func ApplyMasterWorker(mid int64, gender, exp int, userName, mobile, city, addre
 	}
 	return false, err
 }
+
+//师傅资料修改
+func SaveEditMasterInfo(mid int64, gender, exp int, userName, mobile, city, address, desc, avatar, addTime string) (bool, error) {
+	o := orm.NewOrm()
+	num, err := o.QueryTable("e_master_worker").Filter("m_id", mid).Update(orm.Params{
+		"username":     userName,
+		"gender":       gender,
+		"mobile":       mobile,
+		"service_city": city,
+		"address":      address,
+		"image":        avatar,
+		"describe":     desc,
+		"exp":          exp,
+	})
+	if err == nil && num > 0 {
+		return true, err
+	}
+	return false, err
+}

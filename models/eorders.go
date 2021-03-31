@@ -7,8 +7,8 @@ type EOrders struct {
 	OrderSn              string
 	MId                  int
 	WorkerId             int
-	Address              string
-	CityId               int
+	Address              int
+	City                 string
 	ConstructionTime     int
 	ServiceId            int
 	ConstructionType     int
