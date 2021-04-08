@@ -11,7 +11,7 @@ func init() {
 
 type EMasterWorkerExp struct {
 	Id       int
-	Wid      int
+	WId      int
 	Exp      int
 	Phone    string
 	Wechat   string
@@ -21,9 +21,9 @@ type EMasterWorkerExp struct {
 }
 
 //获取师傅经验信息
-func GetExp(wId int) (*EMasterWorkerExp, error) {
+func GetExp(wId int) (EMasterWorkerExp, error) {
 	o := orm.NewOrm()
-	var data *EMasterWorkerExp
+	var data EMasterWorkerExp
 	err := o.QueryTable("e_master_worker_exp").Filter("w_id", wId).One(&data)
 	return data, err
 }
@@ -31,13 +31,13 @@ func GetExp(wId int) (*EMasterWorkerExp, error) {
 func AddExp(wId, exp int, wechat, phone, image string) (bool, error) {
 	o := orm.NewOrm()
 	var data EMasterWorkerExp
-	data.Wid = wId
+	data.WId = wId
 	data.Exp = exp
 	data.Phone = phone
 	data.Image = image
 	data.Wechat = wechat
 	data.Status = 0
-	data.CreateAt = time.Now().Format("2016-01-02 15:04:05")
+	data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	insertId, err := o.Insert(&data)
 	if err == nil && insertId > 0 {
 		return true, err

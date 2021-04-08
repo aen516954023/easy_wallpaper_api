@@ -30,7 +30,7 @@ func AddIdCard(wId int, idCard, realname, pos, neg string) (bool, error) {
 	data.ImagePos = pos
 	data.ImageNeg = neg
 	data.Status = 0
-	data.CreateAt = time.Now().Format("2016-01-02 15:04:05")
+	data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	insertId, err := o.Insert(&data)
 	if err == nil && insertId > 0 {
 		return true, err

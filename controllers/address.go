@@ -81,6 +81,7 @@ func (a *Address) SaveAddress() {
 	valid.Required(pm.Get("province"), "省份不能为空")
 	valid.Required(pm.Get("city"), "城市不能为空")
 	valid.Required(pm.Get("district"), "市区不能为空")
+	valid.Required(pm.Get("house_number"), "门牌号码不能为空")
 
 	latitude, _ := a.GetFloat("latitude")
 	longitude, _ := a.GetFloat("longitude")
@@ -110,6 +111,7 @@ func (a *Address) SaveAddress() {
 			pm.Get("province"),
 			pm.Get("city"),
 			pm.Get("district"),
+			pm.Get("house_number"),
 			latitude,
 			longitude,
 		)
@@ -133,6 +135,7 @@ func (a *Address) SaveAddress() {
 			pm.Get("province"),
 			pm.Get("city"),
 			pm.Get("district"),
+			pm.Get("house_number"),
 			latitude,
 			longitude,
 		)

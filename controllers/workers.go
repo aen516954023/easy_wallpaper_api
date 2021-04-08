@@ -301,10 +301,10 @@ func (w *Workers) SendCase() {
 
 // @Title 我的案例
 // @Description 师傅中心-我的案例页面
-//// @Param	token		header 	string	true		"the token"
-//// @Param	page		query 	int 	false		"the page num"
-//// @Success 200 {string} auth success
-//// @Failure 403 user not exist
+// @Param	token		header 	string	true		"the token"
+// @Param	page		query 	int 	false		"the page num"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
 // @router /case_list [post]
 func (w *Workers) CaseList() {
 	page, _ := w.GetInt("page")
@@ -330,9 +330,9 @@ func (w *Workers) CaseList() {
 
 // @Title 实名认证
 // @Description 师傅中心-实名认证接口
-//// @Param	token		header 	string	true		"the token"
-//// @Success 200 {string} auth success
-//// @Failure 403 user not exist
+// @Param	token	header 	string	true		"the token"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
 // @router /get_id_card [post]
 func (w *Workers) GetIdCard() {
 	info, _ := models.GetMasterWorkerInfo(w.CurrentLoginUser.Id)
@@ -353,13 +353,13 @@ func (w *Workers) GetIdCard() {
 
 // @Title 实名认证提交
 // @Description 师傅中心-实名认证提交接口
-//// @Param	token		header 	string	true		"the token"
-//// @Param	real_name	query 	string 	true		"the real_name"
-//// @Param	id_card		query 	string 	true		"the id_card"
-//// @Param	pos			query 	string 	true		"the image pos"
-//// @Param	neg			query 	string 	true		"the image neg"
-//// @Success 200 {string} auth success
-//// @Failure 403 user not exist
+// @Param	token		header 	string	true		"the token"
+// @Param	real_name	query 	string 	true		"the real_name"
+// @Param	id_card		query 	string 	true		"the id_card"
+// @Param	pos			query 	string 	true		"the image pos"
+// @Param	neg			query 	string 	true		"the image neg"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
 // @router /save_id_card [post]
 func (w *Workers) SaveIdCard() {
 	realName := w.GetString("real_name")
@@ -442,7 +442,7 @@ func (w *Workers) GetExp() {
 func (w *Workers) SaveExp() {
 	exp, _ := w.GetInt("exp")
 	wechat := w.GetString("wechat")
-	phone := w.GetString("phone")
+	phone := w.GetString("mobile")
 	image := w.GetString("image")
 
 	if exp <= 0 {

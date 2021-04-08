@@ -11,19 +11,20 @@ func init() {
 
 // 地址表
 type EAddress struct {
-	Id        int
-	MId       int     // 用户id
-	Username  string  // 联系人
-	Phone     string  // 联系方式
-	Name      string  // 地址名称
-	Province  string  // 省
-	City      string  // 市
-	District  string  // 区
-	Address   string  // 地址详情
-	Latitude  float64 // 经度
-	Longitude float64 // 纬度
-	Default   int     // 是否是默认地址
-	CreateAt  string  //添加时间
+	Id          int
+	MId         int     // 用户id
+	Username    string  // 联系人
+	Phone       string  // 联系方式
+	Name        string  // 地址名称
+	Province    string  // 省
+	City        string  // 市
+	District    string  // 区
+	Address     string  // 地址详情
+	HouseNumber string  // 门牌号码
+	Latitude    float64 // 经度
+	Longitude   float64 // 纬度
+	Default     int     // 是否是默认地址
+	CreateAt    string  //添加时间
 }
 
 func GetAddressList(mId int64) (int64, []EAddress, error) {
@@ -41,7 +42,7 @@ func GetAddressId(id int) (EAddress, error) {
 }
 
 //添加操作
-func InsertAddress(mId, isDefault int, username, phone, addressName, address, pro, city, dist string, lat, log float64) (int64, error) {
+func InsertAddress(mId, isDefault int, username, phone, addressName, address, pro, city, dist, house string, lat, log float64) (int64, error) {
 	o := orm.NewOrm()
 	o.Begin()
 	// 判断添加地址是否设置默认， 如果设置 取消其它默认地址
@@ -60,6 +61,7 @@ func InsertAddress(mId, isDefault int, username, phone, addressName, address, pr
 	data.City = city
 	data.District = dist
 	data.Address = address
+	data.HouseNumber = house
 	data.Latitude = lat
 	data.Longitude = log
 	data.Default = isDefault
@@ -74,7 +76,7 @@ func InsertAddress(mId, isDefault int, username, phone, addressName, address, pr
 }
 
 // 修改操作
-func ModifyAddress(id, mId, isDefault int, username, phone, addressName, address, pro, city, dist string, lat, log float64) (bool, error) {
+func ModifyAddress(id, mId, isDefault int, username, phone, addressName, address, pro, city, dist, house string, lat, log float64) (bool, error) {
 	o := orm.NewOrm()
 	o.Begin()
 	// 判断添加地址是否设置默认， 如果设置 取消其它默认地址
@@ -85,16 +87,17 @@ func ModifyAddress(id, mId, isDefault int, username, phone, addressName, address
 	}
 
 	num, err := o.QueryTable("e_address").Filter("id", id).Update(orm.Params{
-		"username":  username,
-		"phone":     phone,
-		"name":      addressName,
-		"province":  pro,
-		"city":      city,
-		"district":  dist,
-		"address":   address,
-		"Latitude":  lat,
-		"Longitude": log,
-		"default":   isDefault,
+		"username":     username,
+		"phone":        phone,
+		"name":         addressName,
+		"province":     pro,
+		"city":         city,
+		"district":     dist,
+		"address":      address,
+		"Latitude":     lat,
+		"Longitude":    log,
+		"default":      isDefault,
+		"house_number": house,
 	})
 	if err == nil && num > 0 {
 		o.Commit()
