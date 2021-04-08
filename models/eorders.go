@@ -70,3 +70,17 @@ func OrderCancel(orderId, s int) (bool, error) {
 	}
 	return false, err
 }
+
+type UserOpenId struct {
+	OpenId   string
+	OrderSn  string
+	CreateAt string
+}
+
+//获取订单用户openid
+func GetOrderUserOpenid(orderId int) (UserOpenId, error) {
+	o := orm.NewOrm()
+	var data UserOpenId
+	err := o.Raw("SELECT m.open_id,o.order_sn,o.create_at FROM e_orders o LEFT JOIN e_members m ON m.id=o.m_id WHERE o.id=?", orderId).QueryRow(&data)
+	return data, err
+}

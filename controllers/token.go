@@ -25,7 +25,7 @@ type TokenData struct {
 	SessionKey string `json:"session_key"`
 }
 
-var bm, _ = cache.NewCache("memory", `{"interval":60}`)
+var bm, _ = cache.NewCache("memory", `{"interval":7200}`)
 
 // @Title 小程序登陆
 // @Description 小程序登陆接口

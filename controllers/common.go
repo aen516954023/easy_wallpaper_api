@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/httplib"
 	"github.com/xingliuhua/leaf"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -84,4 +86,24 @@ func JsonToMap(jsonStr string) (map[string]interface{}, error) {
 func GetEndTime(cTime string, hour int) int64 {
 	tempTime := 60 * 60 * 24 * hour // 一天的秒数
 	return (strToUnixTime(cTime) + int64(tempTime)) - time.Now().Unix()
+}
+
+// float64转int64
+func Float64ToInt64(s float64) int64 {
+	str := strconv.FormatFloat(s, 'E', -1, 64)
+	i, _ := strconv.ParseInt(str, 10, 64)
+	return i
+}
+
+//获取小程序access_token
+func GetAccessToken() {
+	appId := beego.AppConfig.String("appId")
+	secret := beego.AppConfig.String("secret")
+	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + appId + "&secret=" + secret
+	req := httplib.Get(url)
+	var result map[string]interface{}
+	req.ToJSON(&result)
+	expiresIn := Float64ToInt64(result["expires_in"].(float64))
+	bm.Put("access_token", result["access_token"], time.Duration(expiresIn)*time.Second)
+	//fmt.Println("access_token",bm.Get("access_token"))
 }

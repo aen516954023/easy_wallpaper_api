@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -392,6 +393,18 @@ func (this *Orders) ParticipateOffer() {
 
 	boolVal, err := models.InsertOrderTaking(orderId, int(this.CurrentLoginUser.Id), wId)
 	if boolVal {
+		// 发送小程序订阅消息
+		orderInfo, _ := models.GetOrderUserOpenid(orderId) // 获取接收消息用户openid
+		data := make(map[string]interface{})
+		data["order_sn"] = orderInfo.OrderSn
+		masterInfo, _ := models.GetMasterWorkerInfId(wId)
+		data["master_name"] = masterInfo.Username
+		data["date_time"] = orderInfo.CreateAt
+		data["desc"] = "点击查看师傅详情"
+		data["page"] = "/pages/order_details/order_details?id=" + strconv.Itoa(orderId)
+		//this.sendSubMessage("ooaG-4gBCu_4rFhJ8wq0OXNjgjfg", 0, data)
+		this.sendSubMessage(orderInfo.OpenId, 0, data)
+
 		this.Data["json"] = ReturnSuccess(0, "success", "", 1)
 		this.ServeJSON()
 		return
@@ -539,4 +552,50 @@ func (this *Orders) OrderManageUser() {
 		this.Data["json"] = ReturnError(40001, "暂无记录")
 		this.ServeJSON()
 	}
+}
+
+// @Title 评价
+// @Description 用户评价接口
+// @Param	order_id		query 	int	true		"the order id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /add_comment [post]
+func (o *Orders) AddComment() {
+	oId, _ := o.GetInt("order_id")
+	rate, _ := o.GetInt("rate")
+	comment := o.GetString("comment")
+	image := o.GetString("images")
+	isAnonymous, _ := o.GetInt("is_anonymous")
+	if oId == 0 {
+		o.Data["json"] = ReturnError(40000, "缺少订单id")
+		o.ServeJSON()
+		return
+	}
+	if comment == "" {
+		o.Data["json"] = ReturnError(40000, "评价内容不能为空")
+		o.ServeJSON()
+		return
+	}
+
+	if image == "" {
+		o.Data["json"] = ReturnError(40000, "图片不能为空")
+		o.ServeJSON()
+		return
+	}
+	//判断是否已经评论过 todo
+	info, _ := models.GetUserComment(int(o.CurrentLoginUser.Id), oId)
+	if info.Id > 0 {
+		o.Data["json"] = ReturnError(40001, "评论已提交，请勿重复提交评论")
+		o.ServeJSON()
+		return
+	}
+
+	boolVal, err := models.AddComment(int(o.CurrentLoginUser.Id), oId, rate, isAnonymous, comment, image)
+	if err == nil && boolVal {
+		o.Data["json"] = ReturnSuccess(0, "success", "", 1)
+		o.ServeJSON()
+	} else {
+		o.Data["json"] = ReturnError(40000, "提交失败，请稍后再试")
+	}
+
 }

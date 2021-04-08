@@ -4,6 +4,7 @@ import (
 	"easy_wallpaper_api/models"
 	"fmt"
 	"github.com/beego/beego/v2/core/validation"
+	"strconv"
 	"strings"
 )
 
@@ -90,6 +91,17 @@ func (this *OrderStep) AdvanceOrder() {
 
 		// 更新订单步骤 并更新订单表对应的相关信息
 		if models.ModifyOrdersStepTwo(orderId, workerInfo.Id, serviceType, constructionType, unit, price, depositPrice, info, strToUnixTime(hTime)) {
+
+			// 发送小程序订阅消息
+			orderInfo, _ := models.GetOrderUserOpenid(orderId) // 获取接收消息用户openid
+			data := make(map[string]interface{})
+			serviceTypeStr, _ := models.GetServiceType(int64(serviceType))
+			data["service_name"] = serviceTypeStr.TypeName
+			data["status"] = "待确认"
+			data["desc"] = "查看基础报价详情"
+			data["page"] = "/pages/order_management/order_management?id=" + strconv.Itoa(orderId)
+			this.sendSubMessage(orderInfo.OpenId, 1, data)
+
 			this.Data["json"] = ReturnSuccess(0, "success", "", 0)
 			this.ServeJSON()
 			return
@@ -224,6 +236,17 @@ func (this *OrderStep) ActualOffer() {
 	if workerInfoErr == nil && workerInfo.Id > 0 {
 		// 更新订单步骤 并更新订单表对应的相关信息
 		if models.ModifyOrdersStepActualQuotation(orderId, workerInfo.Id, serviceType, constructionType, unit, area, price, discountedPrice, totalPrice, info) {
+
+			// 发送小程序订阅消息
+			orderInfo, _ := models.GetOrderUserOpenid(orderId) // 获取接收消息用户openid
+			data := make(map[string]interface{})
+			serviceTypeStr, _ := models.GetServiceType(int64(serviceType))
+			data["service_name"] = serviceTypeStr.TypeName
+			data["status"] = "待确认"
+			data["desc"] = "查看实际报价详情"
+			data["page"] = "/pages/order_management/order_management?id=" + strconv.Itoa(orderId)
+			this.sendSubMessage(orderInfo.OpenId, 1, data)
+
 			this.Data["json"] = ReturnSuccess(0, "success", "", 0)
 			this.ServeJSON()
 		} else {
@@ -292,6 +315,15 @@ func (this *OrderStep) Acceptance() {
 	masterInfo, infoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
 	if infoErr == nil && masterInfo.Id > 0 {
 		if models.ModifyStepStatus(data.OId, masterInfo.Id) {
+			// 发送小程序订阅消息
+			orderInfo, _ := models.GetOrderUserOpenid(oId) // 获取接收消息用户openid
+			data := make(map[string]interface{})
+			data["order_sn"] = orderInfo.OrderSn
+			data["status"] = "待验收"
+			data["desc"] = "查看订单详情"
+			data["page"] = "/pages/order_management/order_management?id=" + strconv.Itoa(oId)
+			this.sendSubMessage(orderInfo.OpenId, 2, data)
+
 			this.Data["json"] = ReturnSuccess(0, "success", "", 1)
 			this.ServeJSON()
 			return
