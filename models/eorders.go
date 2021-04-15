@@ -10,6 +10,7 @@ type EOrders struct {
 	Address              int
 	City                 string
 	ConstructionTime     int
+	ConstructionTimeStr  string
 	ServiceId            int
 	ConstructionType     int
 	IsMateriel           int
@@ -33,11 +34,16 @@ func GetOrdersAll(mId int64, status, flag int) (int64, []EOrders, error) {
 	var data []EOrders
 	// flag 1 用户端订单列表  2 师傅端 订单大厅
 	if flag == 2 {
+		// Exclude 过滤当前师傅用户发布的订单 防止师傅自己接自己的订单
 		if status == 0 {
 			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status__gt", 0).OrderBy("-create_at").All(&data)
 			return num, data, err
 		} else {
-			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status", status).OrderBy("-create_at").All(&data)
+			// status = 1 进行中的订单
+			// 获取当前用户师傅信息服务的城市
+			workerInfo, _ := GetMasterWorkerInfo(mId)
+
+			num, err := o.QueryTable("e_orders").Exclude("m_id", mId).Filter("status", status).Filter("city", workerInfo.ServiceCity).OrderBy("-create_at").All(&data)
 			return num, data, err
 		}
 	} else {

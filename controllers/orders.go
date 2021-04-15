@@ -6,7 +6,6 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -174,7 +173,7 @@ func (this *Orders) SaveOrder() {
 		this.StopRun()
 	}
 
-	if constructionTime == "" {
+	if constructionTime == "" || constructionTime == "请选择施工时间" {
 		this.Data["json"] = ReturnError(40001, "请选择施工时间")
 		this.ServeJSON()
 		this.StopRun()
@@ -192,16 +191,16 @@ func (this *Orders) SaveOrder() {
 		this.ServeJSON()
 		this.StopRun()
 	}
-
 	//  处理施工时间格式
-	constructionTime = strings.Replace(constructionTime, "/", "-", -1)
+	//constructionTime = strings.Replace(constructionTime, "/", "-", -1)
 
 	var orderInfo models.EOrders
 	orderInfo.OrderSn = CreateRandOrderOn() // 生成订单号
 	orderInfo.MId = int(userId)
 	orderInfo.WorkerId = workerId
 	orderInfo.Area = area
-	orderInfo.ConstructionTime = int(strToUnixTime(constructionTime))
+	//orderInfo.ConstructionTime = int(strToUnixTime(constructionTime))
+	orderInfo.ConstructionTimeStr = constructionTime
 	orderInfo.BasementMembrane = basementMembrane
 	orderInfo.IsTearOfOldWallpaper = oldWallpaper
 	orderInfo.IsMateriel = materials
@@ -214,11 +213,11 @@ func (this *Orders) SaveOrder() {
 	orderInfo.City = city
 	orderInfo.ConstructionType = constructionType
 	orderInfo.ServiceId = types
-	fmt.Println(orderInfo)
+	//fmt.Println(orderInfo)
 	//panic("orderinfo")
 	o := orm.NewOrm()
 	id, errors := o.Insert(&orderInfo)
-	fmt.Println(errors)
+	//fmt.Println(errors)
 	if errors == nil {
 		this.Data["json"] = ReturnSuccess(0, "success", id, 1)
 		this.ServeJSON()
