@@ -255,6 +255,34 @@ func (this *Orders) OrderCancel() {
 	this.ServeJSON()
 }
 
+// @Title 删除订单
+// @Description 删除订单接口
+// @Param	token		header 	string	true		"the token"
+// @Param	order_sn		query 	string 	true		"the orders sn"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /order_del [post]
+func (this *Orders) DelOrder() {
+	// 接收订单状态参数
+	orderSn := this.GetString("order_sn")
+
+	data, err := models.GetOrderInfoSn(orderSn)
+	if err == nil {
+		boolVal, errs := models.OrderCancel(data.Id, -2)
+		if boolVal {
+			this.Data["json"] = ReturnSuccess(0, "success", data, 1)
+			this.ServeJSON()
+			return
+		}
+		logs.Error("删除订单操作失败:" + fmt.Sprint("%s", errs))
+		this.Data["json"] = ReturnError(40000, "删除订单操作失败")
+		this.ServeJSON()
+		return
+	}
+	this.Data["json"] = ReturnError(40000, "没有查询到关信息")
+	this.ServeJSON()
+}
+
 // @Title 订单大厅
 // @Description 师傅订单大厅数据接口
 // @Param	token		header 	string	true		"the token"

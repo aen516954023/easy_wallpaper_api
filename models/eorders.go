@@ -65,7 +65,15 @@ func GetOrderInfo(orderId int) (EOrders, error) {
 	return data, err
 }
 
-//取消订单
+// 查询订单详情 order_sn
+func GetOrderInfoSn(sn string) (EOrders, error) {
+	o := orm.NewOrm()
+	var data EOrders
+	err := o.QueryTable("e_orders").Filter("order_sn", sn).One(&data)
+	return data, err
+}
+
+//取消订单 -1 删除订单-2
 func OrderCancel(orderId, s int) (bool, error) {
 	o := orm.NewOrm()
 	num, err := o.QueryTable("e_orders").Filter("id", orderId).Update(orm.Params{

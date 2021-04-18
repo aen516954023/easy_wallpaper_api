@@ -91,7 +91,7 @@ func (this *Home) Uploads() {
 	defer f.Close()
 	fileName := time.Now().Format("2006-01-02-15-04-05-") + h.Filename
 	path := fmt.Sprint("static/upload/", fileName)
-	fmt.Println(fileName)
+	//fmt.Println(fileName)
 	errs := this.SaveToFile("image", path) // 保存位置在 static/upload, 没有文件夹要先创建
 	if errs == nil {
 		this.Data["json"] = ReturnSuccess(0, "message", beego.AppConfig.String("appurl")+"/"+path, 1)

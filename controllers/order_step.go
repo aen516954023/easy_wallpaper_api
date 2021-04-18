@@ -273,7 +273,8 @@ func (this *OrderStep) ConfirmActualOffer() {
 		return
 	}
 	//计算订单支付金额
-	money := data.TotalPrice - data.DiscountedPrice
+	//money := data.TotalPrice - data.DiscountedPrice
+	money := data.TotalPrice
 	if money <= 0 {
 		this.Data["json"] = ReturnError(40003, "订单金额错误")
 		this.ServeJSON()
