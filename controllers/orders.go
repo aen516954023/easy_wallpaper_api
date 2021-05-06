@@ -88,7 +88,23 @@ func (this *Orders) OrderDetails() {
 			ValueData["master_worker_list_num"] = 0
 		}
 		//获取订单详情信息
-		ValueData["info"] = data
+		var mapInfo = make(map[string]interface{})
+		addressInfo, _ := models.GetAddressId(data.Address)
+		mapInfo["address_name"] = addressInfo.Name
+		mapInfo["address"] = addressInfo.Address
+		mapInfo["construction_type"] = constructionData[data.ConstructionType]
+		serviceInfo, _ := models.GetServiceType(int64(data.ServiceId))
+		mapInfo["service_name"] = serviceInfo.TypeName
+		mapInfo["area"] = data.Area
+		mapInfo["construction_time_str"] = data.ConstructionTimeStr
+		mapInfo["is_materiel"] = data.IsMateriel
+		mapInfo["is_tear_of_old_wallpaper"] = data.IsTearOfOldWallpaper
+		mapInfo["basement_membrane"] = data.BasementMembrane
+		mapInfo["order_sn"] = data.OrderSn
+		mapInfo["create_at"] = data.CreateAt
+		mapInfo["images"] = data.Images
+
+		ValueData["info"] = mapInfo
 		this.Data["json"] = ReturnSuccess(0, "success", ValueData, 1)
 		this.ServeJSON()
 		return
@@ -342,14 +358,19 @@ func (this *Orders) GetMasterOrdersInfo() {
 		returnValue["sn"] = data.OrderSn
 		returnValue["service_type"] = serviceType.TypeName
 		returnValue["construction_type"] = constructionData[data.ConstructionType]
-		returnValue["address"] = data.Address
+
+		addressInfo, _ := models.GetAddressId(data.Address)
+		returnValue["address"] = addressInfo.Address
+		returnValue["address_name"] = addressInfo.Name
 		returnValue["area"] = data.Area
 		returnValue["create_at"] = data.CreateAt
-		if data.ConstructionTime == 0 {
-			returnValue["construction_time"] = "--"
-		} else {
-			returnValue["construction_time"] = UnixTimeToSTr(int64(data.ConstructionTime))
-		}
+		returnValue["construction_time"] = data.ConstructionTimeStr
+		// 2021.5.6 modify construction_time
+		//if data.ConstructionTime == 0 {
+		//	returnValue["construction_time"] = "--"
+		//} else {
+		//	returnValue["construction_time"] = UnixTimeToSTr(int64(data.ConstructionTime))
+		//}
 		returnValue["basement_membrane"] = data.BasementMembrane
 		returnValue["is_masteriel"] = data.IsMateriel
 		returnValue["is_tear_of_old_wallpaper"] = data.IsTearOfOldWallpaper
@@ -506,6 +527,25 @@ func (this *Orders) OrderManageMaster() {
 		_, list, _ := models.GetAllServiceType()
 		returnVal["service_type_list"] = list
 		returnVal["construction_type_list"] = constructionData
+
+		// 2021.5.6 add order_info
+		var mapInfo = make(map[string]interface{})
+		addressInfo, _ := models.GetAddressId(oInfo.Address)
+		mapInfo["address_name"] = addressInfo.Name
+		mapInfo["address"] = addressInfo.Address
+		mapInfo["construction_type"] = constructionData[oInfo.ConstructionType]
+		serviceInfo, _ := models.GetServiceType(int64(oInfo.ServiceId))
+		mapInfo["service_name"] = serviceInfo.TypeName
+		mapInfo["area"] = oInfo.Area
+		mapInfo["construction_time_str"] = oInfo.ConstructionTimeStr
+		mapInfo["is_materiel"] = oInfo.IsMateriel
+		mapInfo["is_tear_of_old_wallpaper"] = oInfo.IsTearOfOldWallpaper
+		mapInfo["basement_membrane"] = oInfo.BasementMembrane
+		mapInfo["order_sn"] = oInfo.OrderSn
+		mapInfo["create_at"] = oInfo.CreateAt
+		mapInfo["images"] = oInfo.Images
+
+		returnVal["info"] = mapInfo
 		this.Data["json"] = ReturnSuccess(0, "success", returnVal, 1)
 		this.ServeJSON()
 	} else {
