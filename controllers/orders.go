@@ -91,6 +91,7 @@ func (this *Orders) OrderDetails() {
 		var mapInfo = make(map[string]interface{})
 		addressInfo, _ := models.GetAddressId(data.Address)
 		mapInfo["address_name"] = addressInfo.Name
+		mapInfo["address_number"] = addressInfo.HouseNumber
 		mapInfo["address"] = addressInfo.Address
 		mapInfo["construction_type"] = constructionData[data.ConstructionType]
 		serviceInfo, _ := models.GetServiceType(int64(data.ServiceId))
@@ -103,6 +104,9 @@ func (this *Orders) OrderDetails() {
 		mapInfo["order_sn"] = data.OrderSn
 		mapInfo["create_at"] = data.CreateAt
 		mapInfo["images"] = data.Images
+		mapInfo["Id"] = data.Id
+		mapInfo["mobile"] = this.CurrentLoginUser.Phone
+		mapInfo["real_name"] = this.CurrentLoginUser.Nickname
 
 		ValueData["info"] = mapInfo
 		this.Data["json"] = ReturnSuccess(0, "success", ValueData, 1)
@@ -349,7 +353,7 @@ func (this *Orders) GetMasterOrdersInfo() {
 		return
 	}
 	data, err := models.GetOrderInfo(oId)
-	fmt.Println("data", data)
+	//fmt.Println("data", data)
 	if err == nil {
 		returnValue := make(map[string]interface{})
 		// 订单详情数据
@@ -481,7 +485,7 @@ func (this *Orders) OrderManageMaster() {
 	if err == nil && data.Id > 0 {
 		returnVal["WId"] = data.WId
 		wInfo, _ := models.GetMasterWorkerInfId(data.WId)
-		fmt.Println("wInfo", wInfo)
+		//fmt.Println("wInfo", wInfo)
 		returnVal["w_username"] = wInfo.Username
 		returnVal["w_avatar"] = wInfo.Image
 		mInfo, _ := models.GetMemberInfoId(wInfo.MId)
@@ -572,7 +576,7 @@ func (this *Orders) OrderManageUser() {
 	if err == nil && data.Id > 0 {
 		returnVal["WId"] = data.WId
 		wInfo, _ := models.GetMasterWorkerInfId(data.WId)
-		fmt.Println("wInfo", wInfo)
+		//fmt.Println("wInfo", wInfo)
 		returnVal["w_username"] = wInfo.Username
 		returnVal["w_avatar"] = wInfo.Image
 		mInfo, _ := models.GetMemberInfoId(wInfo.MId)

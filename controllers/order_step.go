@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"easy_wallpaper_api/models"
-	"fmt"
 	"github.com/beego/beego/v2/core/validation"
 	"strconv"
 	"strings"
@@ -45,6 +44,35 @@ func (this *OrderStep) ConfirmMasterWorker() {
 	}
 }
 
+// @Title 淘汰师傅
+// @Description 用户淘汰师傅
+// @Param	order_id		query 	int	true		"the order id"
+// @Param	w_id		query 	int	true		"the worker id"
+// @Success 200 {string} auth success
+// @Failure 403 user not exist
+// @router /cancel_master_worker [post]
+func (this *OrderStep) CancelMasterWorker() {
+	// 更新师傅参与表中其它参与的师傅的状态
+	orderId, _ := this.GetInt("order_id")
+	workerId, _ := this.GetInt("w_id")
+	// 通过订单id 查询用户选择的订单参数
+	orderInfo, err := models.GetOrderInfo(orderId)
+
+	if err != nil || orderInfo.Id <= 0 {
+		this.Data["json"] = ReturnError(40000, "选择失败，订单信息未找到")
+		this.ServeJSON()
+		return
+	}
+	boolVal, err := models.CancelMasterOrder(orderId, workerId)
+	if err == nil && boolVal {
+		this.Data["json"] = ReturnSuccess(0, "success", "", 0)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(40003, "操作失败，请稍后再试")
+		this.ServeJSON()
+	}
+}
+
 // @Title 基础报价
 // @Description 师傅发起基础报价
 // @Param	order_id		query 	int	true		"the order id"
@@ -64,7 +92,7 @@ func (this *OrderStep) AdvanceOrder() {
 	depositPrice, _ := this.GetFloat("deposit_price")
 	hTime := this.GetString("h_time") //上门时间
 	// 参数效验 Todo
-	fmt.Println(orderId)
+	//fmt.Println(orderId)
 	valid := validation.Validation{}
 	valid.Required(orderId, "order_id")
 	valid.Required(serviceType, "serviceType")
@@ -85,9 +113,9 @@ func (this *OrderStep) AdvanceOrder() {
 	workerInfo, workerInfoErr := models.GetMasterWorkerInfo(this.CurrentLoginUser.Id)
 	if workerInfoErr == nil && workerInfo.Id > 0 {
 		//处理上门时间格式
-		fmt.Println("htime", hTime)
+		//fmt.Println("htime", hTime)
 		hTime = strings.Replace(hTime, "/", "-", -1)
-		fmt.Println("htime", hTime)
+		//fmt.Println("htime", hTime)
 
 		// 更新订单步骤 并更新订单表对应的相关信息
 		if models.ModifyOrdersStepTwo(orderId, workerInfo.Id, serviceType, constructionType, unit, price, depositPrice, info, strToUnixTime(hTime)) {

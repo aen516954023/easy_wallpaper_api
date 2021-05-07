@@ -104,3 +104,16 @@ func GetOrderMasterAll(mId int64, status int) (int64, []OrderMasterList, error) 
 	}
 
 }
+
+// 淘汰师傅 更新状态
+func CancelMasterOrder(oId, wId int) (bool, error) {
+	o := orm.NewOrm()
+	// 更新师傅参与表状态
+	num, err := o.QueryTable("e_member_or_master_worker").Filter("o_id", oId).Filter("w_id", wId).Update(orm.Params{
+		"status": -1,
+	})
+	if err == nil && num > 0 {
+		return true, err
+	}
+	return false, err
+}
