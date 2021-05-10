@@ -105,8 +105,8 @@ func (this *Orders) OrderDetails() {
 		mapInfo["create_at"] = data.CreateAt
 		mapInfo["images"] = data.Images
 		mapInfo["Id"] = data.Id
-		mapInfo["mobile"] = this.CurrentLoginUser.Phone
-		mapInfo["real_name"] = this.CurrentLoginUser.Nickname
+		mapInfo["mobile"] = addressInfo.Phone
+		mapInfo["real_name"] = addressInfo.Username
 
 		ValueData["info"] = mapInfo
 		this.Data["json"] = ReturnSuccess(0, "success", ValueData, 1)
@@ -617,6 +617,26 @@ func (this *Orders) OrderManageUser() {
 		returnVal["TotalPrice"] = data.TotalPrice
 		returnVal["Unit"] = data.Unit
 
+		// 2021.5.6 add order_info
+		var mapInfo = make(map[string]interface{})
+		addressInfo, _ := models.GetAddressId(oInfo.Address)
+		mapInfo["address_name"] = addressInfo.Name
+		mapInfo["address"] = addressInfo.Address
+		mapInfo["construction_type"] = constructionData[oInfo.ConstructionType]
+		serviceInfo, _ := models.GetServiceType(int64(oInfo.ServiceId))
+		mapInfo["service_name"] = serviceInfo.TypeName
+		mapInfo["area"] = oInfo.Area
+		mapInfo["construction_time_str"] = oInfo.ConstructionTimeStr
+		mapInfo["is_materiel"] = oInfo.IsMateriel
+		mapInfo["is_tear_of_old_wallpaper"] = oInfo.IsTearOfOldWallpaper
+		mapInfo["basement_membrane"] = oInfo.BasementMembrane
+		mapInfo["order_sn"] = oInfo.OrderSn
+		mapInfo["create_at"] = oInfo.CreateAt
+		mapInfo["images"] = oInfo.Images
+		mapInfo["mobile"] = addressInfo.Phone
+		mapInfo["real_name"] = addressInfo.Username
+
+		returnVal["info"] = mapInfo
 		this.Data["json"] = ReturnSuccess(0, "success", returnVal, 1)
 		this.ServeJSON()
 	} else {
