@@ -122,13 +122,13 @@ func ModifyOrdersStepTwo(oId, wId, sType, cType, unit int, price, dPrice float64
 	//data.CreateAt = time.Now().Format("2006-01-02 15:04:05")
 	if err == nil && nums > 0 {
 		// 更新订单相关字段信息
-		num, upErr := o.QueryTable("e_orders").Filter("id", oId).Update(orm.Params{
+		_, upErr := o.QueryTable("e_orders").Filter("id", oId).Update(orm.Params{
 			"service_id":        sType,
 			"construction_type": cType,
 			"status":            2,
 		})
 		fmt.Println("upErr", upErr)
-		if upErr == nil && num > 0 {
+		if upErr == nil {
 			comErr := o.Commit()
 			if comErr != nil {
 				logs.Error("Commit the transaction failed")

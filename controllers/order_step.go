@@ -99,6 +99,7 @@ func (this *OrderStep) AdvanceOrder() {
 	valid.Required(price, "price")
 	valid.Required(info, "info")
 	valid.Required(depositPrice, "depositPrice")
+	valid.Required(hTime, "hTime")
 
 	if valid.HasErrors() {
 		// 如果有错误信息，证明验证没通过

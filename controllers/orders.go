@@ -620,6 +620,7 @@ func (this *Orders) OrderManageUser() {
 		// 2021.5.6 add order_info
 		var mapInfo = make(map[string]interface{})
 		addressInfo, _ := models.GetAddressId(oInfo.Address)
+		mapInfo["address_number"] = addressInfo.HouseNumber
 		mapInfo["address_name"] = addressInfo.Name
 		mapInfo["address"] = addressInfo.Address
 		mapInfo["construction_type"] = constructionData[oInfo.ConstructionType]
