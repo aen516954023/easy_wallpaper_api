@@ -414,7 +414,15 @@ func (this *OrderStep) GetPayInfo() {
 		data["price"] = orderData.Price
 		data["deposit_price"] = orderData.DepositPrice
 		data["unit"] = orderData.Unit
-		data["address"] = orderData.OId
+		data["home_time"] = UnixTimeToSTr(int64(orderData.HomeTime))
+		data["info"] = orderData.Info
+		data["o_id"] = orderData.OId
+		//获取地址
+		orders, _ := models.GetOrderInfo(orderData.OId)
+		address, _ := models.GetAddressId(orders.Address)
+		data["house_number"] = address.HouseNumber
+		data["address"] = address.Address
+
 	} else {
 		this.Data["json"] = ReturnError(40003, "订单信息未找到")
 		this.ServeJSON()

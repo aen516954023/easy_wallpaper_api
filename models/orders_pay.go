@@ -19,7 +19,7 @@ type EOrdersPay struct {
 	Type       int
 	TradeNo    string
 	PayStatus  int
-	PayTime    int
+	PayTime    string
 	CreateAt   string
 }
 
