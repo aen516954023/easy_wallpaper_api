@@ -366,6 +366,10 @@ func (this *Orders) GetMasterOrdersInfo() {
 		addressInfo, _ := models.GetAddressId(data.Address)
 		returnValue["address"] = addressInfo.Address
 		returnValue["address_name"] = addressInfo.Name
+		returnValue["address_number"] = addressInfo.HouseNumber
+		returnValue["mobile"] = addressInfo.Phone
+		returnValue["real_name"] = addressInfo.Username
+
 		returnValue["area"] = data.Area
 		returnValue["create_at"] = data.CreateAt
 		returnValue["construction_time"] = data.ConstructionTimeStr
@@ -385,7 +389,8 @@ func (this *Orders) GetMasterOrdersInfo() {
 		if models.GetOrderTaskingUid(oId, int(this.CurrentLoginUser.Id)) {
 			returnValue["isJoin"] = 1
 			// 获取电话号码
-			returnValue["phone"] = this.CurrentLoginUser.Phone
+			mInfo, _ := models.GetMemberInfoId(data.MId)
+			returnValue["phone"] = mInfo.Phone
 		} else {
 			returnValue["isJoin"] = 0
 			returnValue["phone"] = ""
@@ -500,7 +505,7 @@ func (this *Orders) OrderManageMaster() {
 		returnVal["DepositPrice"] = data.DepositPrice
 		returnVal["DepositStatus"] = data.DepositStatus
 		returnVal["DiscountedPrice"] = data.DiscountedPrice
-		returnVal["HomeTime"] = data.HomeTime
+		returnVal["HomeTime"] = UnixTimeToSTr(int64(data.HomeTime))
 		returnVal["Id"] = data.Id
 		returnVal["Info"] = data.Info
 		returnVal["MId"] = data.MId
@@ -535,8 +540,12 @@ func (this *Orders) OrderManageMaster() {
 		// 2021.5.6 add order_info
 		var mapInfo = make(map[string]interface{})
 		addressInfo, _ := models.GetAddressId(oInfo.Address)
+		mapInfo["address_number"] = addressInfo.HouseNumber
 		mapInfo["address_name"] = addressInfo.Name
 		mapInfo["address"] = addressInfo.Address
+		mapInfo["mobile"] = addressInfo.Phone
+		mapInfo["real_name"] = addressInfo.Username
+
 		mapInfo["construction_type"] = constructionData[oInfo.ConstructionType]
 		serviceInfo, _ := models.GetServiceType(int64(oInfo.ServiceId))
 		mapInfo["service_name"] = serviceInfo.TypeName

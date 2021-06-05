@@ -93,13 +93,13 @@ func GetOrderMasterAll(mId int64, status int) (int64, []OrderMasterList, error) 
 	o := orm.NewOrm()
 	var data []OrderMasterList
 	if status == 0 {
-		num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=1 and o.status > ?", mId, status).QueryRows(&data)
+		num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=1 and o.status > ? order by create_at DESC", mId, status).QueryRows(&data)
 		return num, data, err
 	} else if status < 0 {
-		num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=0", mId).QueryRows(&data)
+		num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=0 order by create_at DESC", mId).QueryRows(&data)
 		return num, data, err
 	} else {
-		num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=1 and o.status = ?", mId, status).QueryRows(&data)
+		num, err := o.Raw("SELECT o.id,o.order_sn,o.service_id,o.construction_type,o.construction_time,o.area,o.create_at FROM e_member_or_master_worker w LEFT JOIN e_orders o ON o.id=w.o_id WHERE w.m_id=? and w.status=1 and o.status = ? order by create_at DESC", mId, status).QueryRows(&data)
 		return num, data, err
 	}
 
